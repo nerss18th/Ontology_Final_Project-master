@@ -1,0 +1,112 @@
+/* พื้นหลังหลัก */
+.promo-main-bg {
+  min-height: calc(100vh - 80px);
+  background-color: #f8fafc;
+  margin-top: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ตกแต่งพื้นหลังด้วย Gradient blobs */
+.promo-main-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 40%;
+  height: 40%;
+  background: radial-gradient(circle, rgba(13, 110, 253, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.promo-main-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(13, 110, 253, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* กล่อง Pricing Card */
+.promo-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 18px rgba(224, 227, 229, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: 2px solid transparent !important;
+}
+
+/* Hover effects */
+.promo-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(13, 110, 253, 0.08);
+}
+
+/* Selected state */
+.promo-card.is-selected {
+  border-color: #0d6efd !important;
+  box-shadow: 0 12px 30px rgba(13, 110, 253, 0.12);
+  background-color: #ffffff;
+}
+
+/* Popular Plan highlights */
+.promo-card.is-popular {
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.08);
+}
+
+.promo-card.is-popular.is-selected {
+  box-shadow: 0 16px 36px rgba(13, 110, 253, 0.15);
+}
+
+/* Icon box */
+.icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background-color: rgba(13, 110, 253, 0.08);
+  color: #0d6efd;
+}
+
+.icon-wrapper span {
+  font-size: 24px;
+}
+
+/* Popular Ribbon */
+.popular-ribbon {
+  position: absolute;
+  top: 15px;
+  right: -35px;
+  background: linear-gradient(135deg, #0d6efd 0%, #004ac6 100%);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 35px;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.select-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.continue-btn {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(13, 110, 253, 0.2) !important;
+  background-color: #004ac6;
+}
+
+.max-w-lg {
+  max-width: 32rem;
+}

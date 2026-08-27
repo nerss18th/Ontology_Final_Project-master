@@ -1,0 +1,73 @@
+<main class="d-flex flex-column align-items-center justify-content-center w-100 promo-main-bg">
+  <div class="container-xl py-5 z-1 position-relative">
+
+    <!-- Header Section -->
+    <div class="text-center mb-5 max-w-lg mx-auto">
+      <h1 class="display-5 fw-bold text-dark mb-3" style="letter-spacing: -1px;">Choose your plan</h1>
+    </div>
+
+    <!-- Pricing Grid -->
+    <div class="row g-4 justify-content-center align-items-stretch">
+      <div class="col-12 col-md-6 col-lg-4" *ngFor="let plan of plans">
+        <div class="card h-100 border-0 p-4 position-relative overflow-hidden promo-card"
+          [class.is-popular]="plan.isPopular" [class.is-selected]="selectedPlanId === plan.id"
+          (click)="selectPlan(plan.id)">
+
+          <!-- Popular badge -->
+          <div class="popular-ribbon" *ngIf="plan.isPopular">
+            Popular
+          </div>
+
+          <div class="card-body d-flex flex-column p-0 gap-4">
+            <!-- Icon & Name -->
+            <div class="d-flex align-items-center gap-3">
+              <div class="icon-wrapper d-flex align-items-center justify-content-center rounded-3">
+                <span class="material-symbols-outlined">{{ plan.icon }}</span>
+              </div>
+              <div>
+                <h3 class="h5 fw-bold mb-0 text-dark">{{ plan.name }}</h3>
+                <span class="text-secondary small">{{ plan.description }}</span>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="d-flex align-items-baseline mt-2">
+              <span class="display-6 fw-bold text-dark">{{ plan.price }}</span>
+              <span class="text-secondary ms-2 small">/ {{ plan.period }}</span>
+            </div>
+
+            <hr class="my-1 border-light-subtle">
+
+            <!-- Features -->
+            <ul class="list-unstyled d-flex flex-column gap-3 mb-0 flex-grow-1">
+              <li class="d-flex align-items-start gap-2 fs-6 text-dark" *ngFor="let feature of plan.features">
+                <span class="material-symbols-outlined text-primary fs-5 pt-1">check_circle</span>
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+
+            <!-- Radio select button -->
+            <div class="pt-3">
+              <button class="btn w-100 py-2.5 rounded-3 fw-semibold select-btn"
+                [class.btn-primary]="selectedPlanId === plan.id"
+                [class.btn-outline-secondary]="selectedPlanId !== plan.id">
+                {{ selectedPlanId === plan.id ? 'Selected' : 'Choose Plan' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Continue -->
+    <div class="text-center mt-5">
+      <button
+        class="btn btn-primary btn-lg px-5 py-3 rounded-3 shadow d-inline-flex align-items-center gap-2 continue-btn"
+        (click)="onContinue()">
+        <span>Continue</span>
+        <span class="material-symbols-outlined fs-5">arrow_forward</span>
+      </button>
+    </div>
+
+  </div>
+</main>

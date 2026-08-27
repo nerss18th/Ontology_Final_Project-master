@@ -1,0 +1,131 @@
+<main class="d-flex flex-column align-items-center justify-content-center w-100 auth-main-bg p-4">
+  <div class="auth-card card p-4 p-md-5 border-0 position-relative overflow-hidden w-100 mx-auto">
+    <div class="deco-accent"></div>
+
+    <div class="card-body position-relative z-1 p-0 d-flex flex-column gap-4">
+      <!-- Icon & Header -->
+      <div class="text-center d-flex flex-column align-items-center gap-2">
+        <span
+          class="material-symbols-outlined text-primary mb-2"
+          style="font-size: 32px; font-variation-settings: 'FILL' 1"
+          >dataset</span
+        >
+        <h1 class="h3 fw-bold text-dark mb-0" style="letter-spacing: -0.02em">Create Account</h1>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="errorMessage"
+        class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 m-0 rounded-3"
+        role="alert"
+        style="font-size: 14px"
+      >
+        <span class="material-symbols-outlined fs-5">error</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Form -->
+      <form class="d-flex flex-column gap-3 mt-2" [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        <!-- Name Input -->
+        <div>
+          <div class="form-floating">
+            <input
+              type="text"
+              class="form-control custom-input"
+              [class.is-invalid]="
+                signupForm.get('name')?.invalid && signupForm.get('name')?.touched
+              "
+              id="name"
+              placeholder="Your Name"
+              formControlName="name"
+            />
+            <label for="name" class="text-secondary">Full Name</label>
+          </div>
+          <div
+            *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1"
+          >
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="signupForm.get('name')?.hasError('required')">กรุณาใส่ชื่อของคุณ</span>
+          </div>
+        </div>
+
+        <!-- Email Input -->
+        <div>
+          <div class="form-floating">
+            <input
+              type="email"
+              class="form-control custom-input"
+              [class.is-invalid]="
+                signupForm.get('email')?.invalid && signupForm.get('email')?.touched
+              "
+              id="email"
+              placeholder="name@company.com"
+              formControlName="email"
+            />
+            <label for="email" class="text-secondary">Email Address</label>
+          </div>
+          <div
+            *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1"
+          >
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="signupForm.get('email')?.errors?.['required']">กรุณาใส่ Email</span>
+            <span *ngIf="signupForm.get('email')?.errors?.['email']">กรุณาใส่อีเมลให้ถูกต้อง</span>
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div>
+          <div class="form-floating">
+            <input
+              type="password"
+              class="form-control custom-input"
+              [class.is-invalid]="
+                signupForm.get('password')?.invalid && signupForm.get('password')?.touched
+              "
+              id="password"
+              placeholder="Password"
+              formControlName="password"
+            />
+            <label for="password" class="text-secondary">Password</label>
+            <div class="small text-secondary mt-1 ps-1">
+              กรุณากรอก A-Z, a-z, ตัวเลขความยาว 8 ตัวอักษร ไม่มีอักขระ
+            </div>
+          </div>
+          <div
+            *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1"
+          >
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="signupForm.get('password')?.errors?.['required']">กรุณาใส่รหัสผ่าน</span>
+            <span *ngIf="signupForm.get('password')?.errors?.['minlength']"
+              >กรุณาใส่รหัสผ่าน 8 ตัวอักษร</span
+            >
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button
+            type="submit"
+            class="btn btn-primary w-100 py-3 rounded-3 fw-medium d-flex align-items-center justify-content-center gap-2 shadow-sm btn-submit"
+            [disabled]="isLoading || signupForm.invalid"
+          >
+            <span>{{ isLoading ? 'Creating Account...' : 'Next' }}</span>
+            <span class="material-symbols-outlined fs-6" *ngIf="!isLoading">arrow_forward</span>
+          </button>
+        </div>
+      </form>
+      <!-- Footer Link -->
+      <div class="text-center mt-2">
+        <p class="small text-secondary mb-0">
+          Already have an account?
+          <a routerLink="/login" class="text-primary fw-medium text-decoration-none hover-underline"
+            >Log In</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+</main>

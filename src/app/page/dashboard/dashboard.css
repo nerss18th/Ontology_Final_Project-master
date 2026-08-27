@@ -1,0 +1,181 @@
+/* Font and Typography */
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+/* Utilities */
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--bs-gray-200);
+  }
+}
+
+.sidebar-width {
+  width: 18rem;
+  /* 288px */
+}
+
+.max-w-5xl {
+  max-width: 1024px;
+}
+
+.transition-colors {
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.hover-text-primary:hover {
+  color: var(--bs-primary) !important;
+}
+
+.hover-bg-light:hover {
+  background-color: var(--bs-gray-100);
+}
+
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+/* Gradients */
+.bg-gradient-header {
+  background: linear-gradient(to right, #135bec, #2563eb, #4338ca);
+}
+
+.bg-gradient-blue {
+  background: linear-gradient(to bottom right, #60a5fa, #6366f1);
+}
+
+.bg-gradient-emerald {
+  background: linear-gradient(to bottom right, #34d399, #14b8a6);
+}
+
+/* Custom Interactive Cards */
+.project-card {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(#135bec, 0.5) !important;
+
+    .project-title {
+      color: var(--bs-primary) !important;
+    }
+  }
+}
+
+/* Theme Variables */
+:host {
+  --bs-primary: #135bec;
+  --bs-primary-rgb: 19, 91, 236;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.max-w-6xl {
+  max-width: 1152px;
+}
+
+/* Button & Shadow hover */
+.shadow-sm-hover {
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+}
+
+/* Custom Soft Backgrounds (Gradients) */
+.bg-primary-soft {
+  background: linear-gradient(to bottom right, rgba(19, 91, 236, 0.2), rgba(19, 91, 236, 0.05));
+}
+
+.bg-indigo-soft {
+  background: linear-gradient(to bottom right, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.05));
+}
+
+.bg-teal-soft {
+  background: linear-gradient(to bottom right, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.05));
+}
+
+/* Custom Colors */
+.text-indigo {
+  color: #6366f1;
+}
+
+.text-teal {
+  color: #14b8a6;
+}
+
+/* Interactive Cards */
+.project-card {
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.2);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+
+    .project-title {
+      color: var(--bs-primary) !important;
+    }
+  }
+
+  .ratio > * {
+    /* ให้ Icon จัดเรียงตรงกลางใน ratio */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Dashed Add Card */
+.dashed-card {
+  border: 2px dashed var(--bs-gray-300);
+  background-color: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  /* เพื่อให้เนื้อหาใน ratio อยู่ตรงกลาง */
+  .add-content {
+    transition: color 0.3s ease;
+  }
+
+  &:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+
+    .add-content span {
+      color: var(--bs-primary) !important;
+    }
+  }
+}
+
+.profile-name-container {
+  margin-left: 0;
+}
+
+@media (min-width: 576px) {
+  .profile-name-container {
+    margin-left: 144px;
+  }
+}

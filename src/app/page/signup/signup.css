@@ -1,0 +1,84 @@
+/* พื้นหลังหลัก */
+.auth-main-bg {
+  min-height: calc(100vh - 80px);
+  background-color: #ffffff;
+  margin-top: 80px;
+  /* surface-container-lowest */
+}
+
+/* กล่อง Form */
+.auth-card {
+  max-width: 28rem;
+  /* ประมาณ 448px (max-w-md) */
+  background-color: #f7f9fb;
+  /* surface */
+  border-radius: 0.75rem;
+  /* rounded-xl */
+  box-shadow: 0 10px 25px rgba(224, 227, 229, 0.7) !important;
+}
+
+/* วงกลมตกแต่งมุมขวาบน */
+.deco-accent {
+  position: absolute;
+  top: -3rem;
+  right: -3rem;
+  width: 8rem;
+  height: 8rem;
+  background-color: rgba(13, 110, 253, 0.05);
+  /* primary/5 */
+  border-radius: 50%;
+  filter: blur(24px);
+  z-index: 0;
+}
+
+/* ปรับแต่ง Input ให้ขอบสีเข้ากับ Design System */
+.custom-input {
+  background-color: transparent !important;
+  border: 1px solid #c3c6d7;
+  /* outline-variant */
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+/* เมื่อคลิกที่ Input (Focus) */
+.custom-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+/* เอฟเฟกต์ปุ่ม Submit */
+.btn-submit {
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #004ac6;
+  /* primary-fixed-variant */
+}
+
+/* เอฟเฟกต์ตอนชี้ Link */
+.hover-underline {
+  text-underline-offset: 4px;
+}
+
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+/* เอฟเฟกต์แสดงข้อความแจ้งเตือนข้อผิดพลาด (Validation Error Alert) */
+.invalid-feedback {
+  font-size: 0.8rem;
+  color: #dc3545;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

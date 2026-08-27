@@ -1,0 +1,140 @@
+<main class="d-flex flex-column align-items-center justify-content-center w-100 auth-main-bg p-4">
+  <div class="auth-card card p-4 p-md-5 border-0 position-relative overflow-hidden w-100 mx-auto">
+    <!-- Decorative background accent -->
+    <div class="deco-accent"></div>
+
+    <div class="card-body position-relative z-1 p-0 d-flex flex-column gap-4">
+      <!-- Icon & Header -->
+      <div class="text-center d-flex flex-column align-items-center gap-2">
+        <span
+          class="material-symbols-outlined text-primary mb-2"
+          style="font-size: 32px; font-variation-settings: 'FILL' 1"
+          >dataset</span
+        >
+        <h1 class="h3 fw-bold text-dark mb-0" style="letter-spacing: -0.02em">Log In</h1>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="errorMessage"
+        class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 m-0 rounded-3"
+        role="alert"
+        style="font-size: 14px"
+      >
+        <span class="material-symbols-outlined fs-5">error</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Form (ผูกกับ Angular Reactive Form) -->
+      <form class="d-flex flex-column gap-3 mt-2" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Email Input (Bootstrap Floating Label) -->
+        <div>
+          <div class="form-floating">
+            <input
+              type="email"
+              class="form-control custom-input"
+              [class.is-invalid]="
+                loginForm.get('email')?.invalid && loginForm.get('email')?.touched
+              "
+              id="email"
+              placeholder="name@company.com"
+              formControlName="email"
+            />
+            <label for="email" class="text-secondary">Email Address</label>
+          </div>
+          <div
+            *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1"
+          >
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="loginForm.get('email')?.hasError('required')">กรุณาใส่ Email</span>
+            <span *ngIf="loginForm.get('email')?.hasError('email')">กรุณาใส่ Email ให้ถูกต้อง</span>
+          </div>
+        </div>
+
+        <!-- Password Input (Bootstrap Floating Label) -->
+        <div>
+          <div class="form-floating">
+            <input
+              type="password"
+              class="form-control custom-input"
+              [class.is-invalid]="
+                loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+              "
+              id="password"
+              placeholder="Password"
+              formControlName="password"
+            />
+            <label for="password" class="text-secondary">Password</label>
+          </div>
+          <div
+            *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1"
+          >
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="loginForm.get('password')?.hasError('required')">กรุณาใส่รหัสผ่าน</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button
+            type="submit"
+            class="btn btn-primary w-100 py-3 rounded-3 fw-medium d-flex align-items-center justify-content-center gap-2 shadow-sm btn-submit"
+            [disabled]="isLoading || loginForm.invalid"
+          >
+            <span>{{ isLoading ? 'Logging In...' : 'Log In' }}</span>
+            <span class="material-symbols-outlined fs-6" *ngIf="!isLoading">arrow_forward</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Mock Data Quick Fill Panel -->
+      <div class="p-3 bg-light rounded-3 border" style="margin-top: 0.5rem">
+        <div
+          class="fw-semibold text-secondary mb-2 d-flex align-items-center gap-1"
+          style="font-size: 13px"
+        >
+          <span>บัญชีทดสอบ login</span>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+            (click)="quickFill('standard@gmail.com', 'admin034161')"
+          >
+            <div>
+              <div class="fw-semibold text-dark" style="font-size: 12px">Standard Test Account</div>
+              <div class="text-muted" style="font-size: 11px">standard@gmail.com</div>
+            </div>
+            <span class="material-symbols-outlined fs-6 text-primary">arrow_forward</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+            (click)="quickFill('pro@gmail.com', 'admin034161')"
+          >
+            <div>
+              <div class="fw-semibold text-dark" style="font-size: 12px">Pro Test Account</div>
+              <div class="text-muted" style="font-size: 11px">pro@gmail.com</div>
+            </div>
+            <span class="material-symbols-outlined fs-6 text-primary">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer Link -->
+      <div class="text-center mt-2">
+        <p class="small text-secondary mb-0">
+          Don't have an account?
+          <a
+            routerLink="/signup"
+            class="text-primary fw-medium text-decoration-none hover-underline"
+            >Sign Up</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+</main>

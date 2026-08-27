@@ -1,0 +1,100 @@
+/* การตั้งค่าสีพื้นหลังหลัก */
+.main-bg {
+    background-color: #f8f9fa;
+    /* คล้ายกับ bg-surface ของ Tailwind */
+}
+
+/* เอฟเฟกต์เบลอที่ Navbar */
+.backdrop-blur {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* เอฟเฟกต์สีไล่ระดับสำหรับข้อความ (Text Gradient) */
+.text-gradient {
+    background: linear-gradient(to right, #0d6efd, #0053db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Hover เอฟเฟกต์สำหรับลิงก์ */
+.hover-primary:hover {
+    color: #0d6efd !important;
+    transition: color 0.3s ease;
+}
+
+/* Hover เอฟเฟกต์สำหรับปุ่ม (Icon ขยับและสเกล) */
+.group-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(13, 110, 253, 0.3) !important;
+}
+
+.group-btn,
+.icon-transition,
+.icon-scale {
+    transition: all 0.3s ease;
+}
+
+.group-btn:hover .icon-transition {
+    transform: translateX(4px);
+}
+
+.btn-hover-surface:hover {
+    background-color: #e9ecef;
+}
+
+.btn-hover-surface:hover .icon-scale {
+    transform: scale(1.1);
+}
+
+/* กล่อง Advertisement (เส้นประ) */
+.ad-container {
+    aspect-ratio: 4 / 5;
+    border: 2px dashed #ced4da;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+}
+
+.ad-container:hover {
+    border-color: rgba(13, 110, 253, 0.3);
+    /* Primary color อ่อนๆ */
+}
+
+.ad-icon-box {
+    width: 64px;
+    height: 64px;
+    background-color: #e9ecef;
+}
+
+/* ของตกแต่งพื้นหลัง (Blur Gradients) ที่สร้างจาก Tailwind Absolute Positioning */
+.deco-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+}
+
+.shape-1 {
+    right: -20%;
+    top: -10%;
+    width: 60%;
+    height: 120%;
+    background: linear-gradient(to bottom left, rgba(13, 110, 253, 0.05), rgba(13, 202, 240, 0.1), transparent);
+    transform: rotate(12deg);
+}
+
+.shape-2 {
+    left: -10%;
+    bottom: -20%;
+    width: 40%;
+    height: 80%;
+    background: linear-gradient(to top right, rgba(108, 117, 125, 0.1), transparent);
+    filter: blur(100px);
+}
+
+/* จัดการความกว้างปุ่มในมือถือ */
+@media (min-width: 576px) {
+    .w-sm-auto {
+        width: auto !important;
+    }
+}

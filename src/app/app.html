@@ -1,0 +1,60 @@
+<!-- Header -->
+<nav *ngIf="!isWorkspacePage" class="navbar fixed-top backdrop-blur bg-white bg-opacity-75 shadow-sm p-0">
+  <div
+    class="container-xl px-4 px-lg-5 d-flex align-items-center justify-content-between"
+    style="height: 70px"
+  >
+    <a class="navbar-brand fw-bold text-primary fs-4 mb-0" routerLink="/">ONTOLOGY</a>
+
+    <ng-container *ngIf="currentUser$ | async as user; else guestNav">
+      <!-- LOGGED IN VIEW: Rendered directly on all screens -->
+      <div class="d-flex align-items-center gap-2 gap-sm-3">
+        <!-- Logged In User Info -->
+        <div class="d-flex align-items-center gap-1.5 text-secondary">
+          <span class="material-symbols-outlined fs-5">account_circle</span>
+          <span
+            class="fw-medium text-truncate d-none d-sm-inline"
+            style="font-size: 14px; max-width: 160px"
+          >
+            {{ user.name || user.email }}
+          </span>
+          <span
+            *ngIf="user.plan"
+            class="badge bg-primary text-white rounded-pill px-2.5 py-1 ms-1"
+            style="font-size: 11px; font-weight: 500"
+          >
+            {{ user.plan }}
+          </span>
+        </div>
+        <!-- Logout Button -->
+        <button
+          (click)="logout()"
+          class="btn btn-outline-danger btn-sm px-3 py-1.5 fw-semibold rounded-3 ms-2"
+          style="font-size: 13px"
+        >
+          Log Out
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-template #guestNav>
+      <!-- GUEST VIEW: Rendered directly on all screens -->
+      <div class="d-flex align-items-center gap-3 gap-sm-4">
+        <a
+          routerLink="/login"
+          class="text-decoration-none text-secondary fw-semibold hover-primary"
+          style="font-size: 14px"
+          >Login</a
+        >
+        <a
+          routerLink="/signup"
+          class="btn btn-primary px-3 px-sm-4 py-2 fw-semibold rounded-3"
+          style="font-size: 14px"
+          >Sign Up</a
+        >
+      </div>
+    </ng-template>
+  </div>
+</nav>
+
+<router-outlet></router-outlet>
