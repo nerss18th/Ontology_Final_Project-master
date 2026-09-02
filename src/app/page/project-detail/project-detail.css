@@ -24,6 +24,11 @@
   font-size: 20px;
 }
 
+.sidebar-width {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
 .sidebar {
   min-height: calc(100vh - 57px);
   display: flex;
@@ -44,6 +49,7 @@
   font-weight: 500;
   border: 0;
   background: transparent;
+  white-space: nowrap;
 }
 
 .sidebar .nav-link:hover {
@@ -55,6 +61,14 @@
   color: #fff;
   background: var(--project-primary);
   box-shadow: 0 0.25rem 0.75rem rgba(19, 91, 236, 0.2);
+}
+
+.sidebar .nav-link:disabled,
+.sidebar .nav-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--bs-secondary-color);
 }
 
 .help-panel {
@@ -69,17 +83,21 @@
   max-width: 1400px;
 }
 
-.diagram-placeholder {
-  min-height: 320px;
-  border: 2px dashed var(--bs-border-color);
-  background: var(--bs-light-bg-subtle);
+.diagram-preview-container {
+  background: var(--bs-tertiary-bg);
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.diagram-placeholder:hover,
-.diagram-placeholder:focus-visible {
-  border-color: rgba(19, 91, 236, 0.55);
-  background: rgba(19, 91, 236, 0.04);
+.diagram-preview-container:hover {
+  border-color: rgba(19, 91, 236, 0.55) !important;
+  background: rgba(19, 91, 236, 0.03) !important;
+}
+
+.diagram-img {
+  max-height: 380px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .diagram-icon {
@@ -130,6 +148,7 @@
 @media (max-width: 991.98px) {
   .sidebar {
     min-height: auto;
+    width: 100% !important;
     border-right: 0 !important;
     border-bottom: 1px solid var(--bs-border-color);
   }

@@ -13,9 +13,9 @@ import { Router, RouterLink } from '@angular/router';
 export class DiagramEditor {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
-  public fileName = 'use_case_v1.png';
+  public fileName = 'ex-diagram.png';
   public lastModified = '2 mins ago';
-  public previewUrl: string | null = null;
+  public previewUrl: string | null = 'ex-diagram.png';
   public searchTerm = '';
 
   constructor(private router: Router) {}

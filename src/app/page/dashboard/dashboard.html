@@ -5,12 +5,9 @@
       <div class="d-flex align-items-center gap-3 mb-4" *ngIf="currentUser$ | async as user">
         <div
           class="rounded-circle border border-primary border-opacity-25 p-1 d-flex align-items-center justify-content-center"
-          style="width: 48px; height: 48px"
-        >
+          style="width: 48px; height: 48px">
           <span
-            class="material-symbols-outlined bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center w-100 h-100"
-            >person</span
-          >
+            class="material-symbols-outlined bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center w-100 h-100">person</span>
         </div>
         <div class="text-truncate" style="max-width: 170px">
           <h6 class="fw-bold mb-0 text-dark text-truncate">
@@ -18,38 +15,26 @@
           </h6>
           <small class="text-secondary text-truncate d-block">{{
             user.plan ? user.plan + ' Account' : 'Standard Account'
-          }}</small>
+            }}</small>
         </div>
       </div>
 
       <nav class="d-flex flex-column gap-1">
-        <p
-          class="px-3 mb-2 fw-bold text-uppercase text-secondary"
-          style="font-size: 10px; letter-spacing: 0.05em"
-        >
+        <p class="px-3 mb-2 fw-bold text-uppercase text-secondary" style="font-size: 10px; letter-spacing: 0.05em">
           Navigation
         </p>
-        <a
-          class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none shadow-sm transition-colors"
+        <a class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none shadow-sm transition-colors"
           [ngClass]="
             activeTab === 'profile' ? 'bg-primary text-white' : 'text-secondary hover-bg-light'
-          "
-          href="javascript:void(0)"
-          (click)="setActiveTab('profile')"
-        >
+          " href="javascript:void(0)" (click)="setActiveTab('profile')">
           <span class="material-symbols-outlined">person</span>
           <span class="fw-medium text-sm">My Profile</span>
         </a>
-        <a
-          class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none transition-colors"
-          [ngClass]="
+        <a class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 text-decoration-none transition-colors" [ngClass]="
             activeTab === 'projects'
               ? 'bg-primary text-white shadow-sm'
               : 'text-secondary hover-bg-light'
-          "
-          href="javascript:void(0)"
-          (click)="setActiveTab('projects')"
-        >
+          " href="javascript:void(0)" (click)="setActiveTab('projects')">
           <span class="material-symbols-outlined">folder_open</span>
           <span class="fw-medium text-sm">My Project</span>
         </a>
@@ -63,21 +48,15 @@
         <div class="d-flex d-lg-none bg-white rounded-3 border p-1 mb-2">
           <button
             class="btn flex-grow-1 py-2 fw-semibold text-sm d-flex align-items-center justify-content-center gap-2 rounded-2 border-0"
-            [class.btn-primary]="activeTab === 'profile'"
-            [class.btn-light]="activeTab !== 'profile'"
-            [class.text-secondary]="activeTab !== 'profile'"
-            (click)="setActiveTab('profile')"
-          >
+            [class.btn-primary]="activeTab === 'profile'" [class.btn-light]="activeTab !== 'profile'"
+            [class.text-secondary]="activeTab !== 'profile'" (click)="setActiveTab('profile')">
             <span class="material-symbols-outlined fs-5">person</span>
             My Profile
           </button>
           <button
             class="btn flex-grow-1 py-2 fw-semibold text-sm d-flex align-items-center justify-content-center gap-2 rounded-2 border-0"
-            [class.btn-primary]="activeTab === 'projects'"
-            [class.btn-light]="activeTab !== 'projects'"
-            [class.text-secondary]="activeTab !== 'projects'"
-            (click)="setActiveTab('projects')"
-          >
+            [class.btn-primary]="activeTab === 'projects'" [class.btn-light]="activeTab !== 'projects'"
+            [class.text-secondary]="activeTab !== 'projects'" (click)="setActiveTab('projects')">
             <span class="material-symbols-outlined fs-5">folder_open</span>
             My Project
           </button>
@@ -89,12 +68,9 @@
           <div class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden">
             <div
               class="bg-gradient-header position-relative d-flex align-items-start align-items-sm-end justify-content-center justify-content-sm-start px-3 px-sm-4 px-lg-5 pt-3 pb-sm-4"
-              style="height: 140px"
-            >
-              <div
-                class="profile-name-container w-100 text-center text-sm-start"
-                *ngIf="currentUser$ | async as user; else guestHeader"
-              >
+              style="height: 140px">
+              <div class="profile-name-container w-100 text-center text-sm-start"
+                *ngIf="currentUser$ | async as user; else guestHeader">
                 <h1 class="fs-3 fw-bold text-white mb-0 text-truncate" style="max-width: 320px">
                   {{ user.name || user.email.split('@')[0] }}
                 </h1>
@@ -108,20 +84,15 @@
             <div class="card-body px-3 px-sm-4 px-lg-5 pb-4 pt-0">
               <div
                 class="d-flex flex-column flex-md-row align-items-center align-items-md-end justify-content-between position-relative gap-3"
-                style="margin-top: -60px"
-              >
+                style="margin-top: -60px">
                 <div
-                  class="d-flex flex-column flex-sm-row align-items-center align-items-sm-end gap-3 gap-sm-4 text-center text-sm-start"
-                >
+                  class="d-flex flex-column flex-sm-row align-items-center align-items-sm-end gap-3 gap-sm-4 text-center text-sm-start">
                   <div
                     class="bg-white border border-4 border-white shadow-sm rounded-4 overflow-hidden d-flex align-items-center justify-content-center flex-shrink-0"
-                    style="width: 120px; height: 120px"
-                  >
+                    style="width: 120px; height: 120px">
                     <span
                       class="material-symbols-outlined bg-light text-secondary d-flex align-items-center justify-content-center w-100 h-100"
-                      style="font-size: 60px"
-                      >person</span
-                    >
+                      style="font-size: 60px">person</span>
                   </div>
                   <div class="pb-2" *ngIf="currentUser$ | async as user; else guestInfo">
                     <p class="text-secondary fw-medium mb-0">
@@ -137,8 +108,7 @@
                 <div class="pb-2 w-100 w-md-auto d-flex justify-content-end">
                   <button
                     class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center gap-1.5 fw-medium rounded-3 py-1.5 px-3"
-                    style="font-size: 13px"
-                  >
+                    style="font-size: 13px">
                     <span class="material-symbols-outlined fs-6">edit</span>
                     Edit Profile
                   </button>
@@ -148,10 +118,7 @@
           </div>
 
           <!-- Personal Information -->
-          <div
-            class="card border border-light-subtle shadow-sm rounded-4"
-            *ngIf="currentUser$ | async as user"
-          >
+          <div class="card border border-light-subtle shadow-sm rounded-4" *ngIf="currentUser$ | async as user">
             <div class="card-body p-4 p-lg-5">
               <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
                 <span class="material-symbols-outlined text-primary">contact_page</span>
@@ -177,11 +144,7 @@
                     <div class="text-secondary small fw-medium mb-1" style="font-size: 12px">
                       อีเมล
                     </div>
-                    <div
-                      class="fw-bold text-dark text-truncate"
-                      style="font-size: 14px"
-                      title="{{ user.email }}"
-                    >
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 14px" title="{{ user.email }}">
                       {{ user.email || '-' }}
                     </div>
                   </div>
@@ -218,10 +181,7 @@
         </ng-container>
 
         <!-- My Projects -->
-        <div
-          class="card border border-light-subtle shadow-sm rounded-4"
-          *ngIf="activeTab === 'projects'"
-        >
+        <div class="card border border-light-subtle shadow-sm rounded-4" *ngIf="activeTab === 'projects'">
           <div class="bg-light p-4 p-lg-5 font-inter min-vh-100">
             <div class="container-fluid max-w-6xl mx-auto px-0 d-flex flex-column gap-4 gap-lg-5">
               <!-- Title & Actions -->
@@ -231,77 +191,42 @@
 
               <!-- Project Grid -->
               <div class="row g-4">
-                <!-- Project Card 1 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                  <a
+                <!-- Project Cards -->
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let proj of projects">
+                  <a *ngIf="proj.link; else unlinkedCard"
                     class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100 text-decoration-none"
-                    routerLink="/dashboard/project/1"
-                    aria-label="Open Project 1 details"
-                  >
+                    [routerLink]="proj.link"
+                    [attr.aria-label]="'Open ' + proj.name + ' details'">
                     <div
-                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center"
-                    >
-                      <span class="material-symbols-outlined display-5 text-primary text-opacity-50"
-                        >folder_zip</span
-                      >
+                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center">
+                      <span class="material-symbols-outlined display-5 text-primary text-opacity-50">folder_zip</span>
                     </div>
                     <div class="px-2 pb-2 mt-1">
-                      <h6 class="fw-bold text-dark m-0 project-title">Project 1</h6>
-                      <small class="text-secondary">Market Research Analysis</small>
+                      <h6 class="fw-bold text-dark m-0 project-title">{{ proj.name }}</h6>
+                      <small class="text-secondary">{{ proj.detail }}</small>
                     </div>
                   </a>
-                </div>
-
-                <!-- Project Card 2 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                  <div
-                    class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100"
-                  >
-                    <div
-                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-indigo-soft d-flex align-items-center justify-content-center"
-                    >
-                      <span class="material-symbols-outlined display-5 text-indigo text-opacity-50"
-                        >inventory_2</span
-                      >
+                  <ng-template #unlinkedCard>
+                    <div class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100">
+                      <div
+                        class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-outlined display-5 text-primary text-opacity-50">folder_zip</span>
+                      </div>
+                      <div class="px-2 pb-2 mt-1">
+                        <h6 class="fw-bold text-dark m-0 project-title">{{ proj.name }}</h6>
+                        <small class="text-secondary">{{ proj.detail }}</small>
+                      </div>
                     </div>
-                    <div class="px-2 pb-2 mt-1">
-                      <h6 class="fw-bold text-dark m-0 project-title">Project 2</h6>
-                      <small class="text-secondary">Internal Tool Redesign</small>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Project Card 3 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                  <div
-                    class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100"
-                  >
-                    <div
-                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-teal-soft d-flex align-items-center justify-content-center"
-                    >
-                      <span class="material-symbols-outlined display-5 text-teal text-opacity-50"
-                        >schema</span
-                      >
-                    </div>
-                    <div class="px-2 pb-2 mt-1">
-                      <h6 class="fw-bold text-dark m-0 project-title">Project 3</h6>
-                      <small class="text-secondary">Database Migration Study</small>
-                    </div>
-                  </div>
+                  </ng-template>
                 </div>
 
                 <!-- Add New Project Placeholder -->
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div
                     class="dashed-card d-flex flex-column align-items-center justify-content-center rounded-4 h-100 p-3 ratio ratio-16x9 m-0"
-                    style="height: auto"
-                  >
-                    <div
-                      class="d-flex flex-column align-items-center justify-content-center gap-2 add-content"
-                    >
-                      <span class="material-symbols-outlined display-6 text-secondary"
-                        >add_circle</span
-                      >
+                    style="height: auto; cursor: pointer;" (click)="openAddProjectModal()">
+                    <div class="d-flex flex-column align-items-center justify-content-center gap-2 add-content">
+                      <span class="material-symbols-outlined display-6 text-secondary">add_circle</span>
                       <span class="fw-semibold text-secondary text-sm">New Project</span>
                     </div>
                   </div>
@@ -312,5 +237,46 @@
         </div>
       </div>
     </main>
+  </div>
+</div>
+
+<!-- Add New Project Modal -->
+<div *ngIf="isAddProjectModalOpen" class="modal-backdrop fade show" (click)="closeAddProjectModal()"></div>
+<div *ngIf="isAddProjectModalOpen" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="addProjectModalTitle">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0" id="addProjectModalTitle">
+          <span class="material-symbols-outlined text-primary">create_new_folder</span>
+          Create New Project
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeAddProjectModal()"></button>
+      </div>
+      <form (ngSubmit)="saveProject()">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label for="projectNameInput" class="form-label fw-semibold small">Project Name <span
+                class="text-danger">*</span></label>
+            <input id="projectNameInput" type="text" class="form-control" placeholder="e.g. Project 2"
+              [(ngModel)]="newProject.name" name="projectName" required />
+          </div>
+          <div class="mb-2">
+            <label for="projectDetailInput" class="form-label fw-semibold small">Detail / Description</label>
+            <textarea id="projectDetailInput" class="form-control" rows="3" placeholder="e.g. Internal System Redesign"
+              [(ngModel)]="newProject.detail" name="projectDetail"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
+            (click)="closeAddProjectModal()">Cancel</button>
+          <button type="submit"
+            class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
+            [disabled]="!newProject.name.trim()">
+            <span class="material-symbols-outlined fs-6">check</span>Create Project
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

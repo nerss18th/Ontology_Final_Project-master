@@ -10,7 +10,11 @@
       <!-- LOGGED IN VIEW: Rendered directly on all screens -->
       <div class="d-flex align-items-center gap-2 gap-sm-3">
         <!-- Logged In User Info -->
-        <div class="d-flex align-items-center gap-1.5 text-secondary">
+        <a
+          routerLink="/dashboard"
+          class="d-flex align-items-center gap-1.5 text-secondary text-decoration-none"
+          title="Go to Dashboard"
+        >
           <span class="material-symbols-outlined fs-5">account_circle</span>
           <span
             class="fw-medium text-truncate d-none d-sm-inline"
@@ -25,11 +29,20 @@
           >
             {{ user.plan }}
           </span>
-        </div>
+        </a>
+        <!-- Profile Button to Dashboard -->
+        <a
+          routerLink="/dashboard"
+          class="btn btn-outline-primary btn-sm px-3 py-1.5 fw-semibold rounded-3 d-inline-flex align-items-center gap-1"
+          style="font-size: 13px"
+        >
+          <span class="material-symbols-outlined fs-6">person</span>
+          Profile
+        </a>
         <!-- Logout Button -->
         <button
           (click)="logout()"
-          class="btn btn-outline-danger btn-sm px-3 py-1.5 fw-semibold rounded-3 ms-2"
+          class="btn btn-outline-danger btn-sm px-3 py-1.5 fw-semibold rounded-3"
           style="font-size: 13px"
         >
           Log Out

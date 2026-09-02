@@ -23,7 +23,7 @@ export class App {
   }
 
   get isWorkspacePage(): boolean {
-    return this.router.url.startsWith('/dashboard/project/1');
+    return false;
   }
 
   toggleMenu() {

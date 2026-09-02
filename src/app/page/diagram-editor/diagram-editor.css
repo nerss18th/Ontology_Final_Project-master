@@ -8,13 +8,18 @@
   color: #172033;
 }
 
-.sidebar {
-  width: 256px;
-  min-height: 100vh;
+.sidebar-width {
+  width: 18rem;
   flex-shrink: 0;
 }
 
-.brand-icon {
+.sidebar {
+  min-height: calc(100vh - 57px);
+  display: flex;
+  flex-direction: column;
+}
+
+.project-icon {
   width: 40px;
   height: 40px;
   background: rgba(19, 91, 236, 0.1);
@@ -23,15 +28,31 @@
 .sidebar .nav-link {
   color: var(--bs-secondary-color);
   border-radius: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
 }
 
-.sidebar .nav-link:hover,
-.sidebar .nav-link.active {
+.sidebar .nav-link:hover {
   color: var(--editor-primary);
-  background: rgba(19, 91, 236, 0.1);
+  background: var(--bs-tertiary-bg);
+}
+
+.sidebar .nav-link.active {
+  color: #fff;
+  background: var(--editor-primary);
+  box-shadow: 0 0.25rem 0.75rem rgba(19, 91, 236, 0.2);
+}
+
+.sidebar .nav-link:disabled,
+.sidebar .nav-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--bs-secondary-color);
 }
 
 .editor-main {
@@ -39,42 +60,12 @@
   flex: 1;
 }
 
-.editor-main > .navbar {
-  min-height: 64px;
-}
-
-.search-box {
-  width: 256px;
-}
-
-.search-box .material-symbols-outlined {
-  top: 50%;
-  left: 0.75rem;
-  transform: translateY(-50%);
-  color: var(--bs-secondary-color);
-  font-size: 20px;
-}
-
-.search-box .form-control {
-  height: 40px;
-  padding-left: 2.5rem;
-  background: var(--bs-tertiary-bg);
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  color: var(--bs-secondary-color);
-  background: var(--bs-secondary-bg);
-}
-
 .content-area {
-  min-height: calc(100vh - 64px);
-  overflow-y: auto;
+  min-width: 0;
 }
 
-.editor-content {
-  max-width: 1200px;
+.content-container {
+  max-width: 1400px;
 }
 
 .upload-panel {
@@ -83,8 +74,8 @@
 }
 
 .diagram-preview {
-  width: min(100%, 300px);
-  aspect-ratio: 1;
+  width: min(100%, 480px);
+  max-height: 380px;
   overflow: hidden;
   border: 1px solid var(--bs-border-color);
   background: var(--bs-light-bg-subtle);
@@ -107,13 +98,25 @@
   font-size: 56px;
 }
 
-@media (max-width: 767.98px) {
-  .editor-main > .navbar {
-    min-height: 72px;
+@media (max-width: 991.98px) {
+  .editor-shell {
+    flex-direction: column;
   }
 
-  .content-area {
-    min-height: calc(100vh - 72px);
+  .sidebar {
+    min-height: auto;
+    width: 100% !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+
+  .sidebar .nav {
+    flex-direction: row !important;
+    overflow-x: auto;
+  }
+
+  .sidebar .nav-link {
+    white-space: nowrap;
   }
 
   .upload-panel {
