@@ -17,7 +17,7 @@ export class Login {
     password: new FormControl('', [
       Validators.required,
       Validators.minLength(8),
-      Validators.pattern(/^(?=.*[a-zA-Z])[a-zA-Z0-9]+$/),
+      Validators.pattern(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/),
     ]),
   });
   isLoading = false;

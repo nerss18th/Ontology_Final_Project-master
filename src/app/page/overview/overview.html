@@ -1,0 +1,80 @@
+<div class="overview-container">
+  <!-- Header Banner -->
+  <div class="card border-0 bg-primary text-white rounded-4 shadow-sm p-4 p-md-5 mb-4 position-relative overflow-hidden header-banner">
+    <div class="position-relative z-1">
+      <span class="badge bg-white bg-opacity-25 text-white mb-2 px-3 py-2 rounded-pill fw-semibold">
+        Project Overview
+      </span>
+      <h2 class="display-6 fw-bold mb-2">{{ projectName }}</h2>
+      <p class="lead mb-0 text-white-50">{{ projectDetail }}</p>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="row g-3 mb-4">
+    <div *ngFor="let stat of stats" class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+        <div class="card-body p-2 d-flex align-items-center justify-content-between">
+          <div>
+            <div class="text-secondary small fw-semibold text-uppercase mb-1">{{ stat.title }}</div>
+            <h3 class="fw-bold mb-0 text-dark">{{ stat.count }}</h3>
+          </div>
+          <div class="stat-icon-wrapper rounded-3 d-flex align-items-center justify-content-center bg-{{ stat.color }}-subtle text-{{ stat.color }}">
+            <span class="material-symbols-outlined fs-4">{{ stat.icon }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Access Diagrams Cards -->
+  <div class="row g-4">
+    <!-- Use Case Diagram Quick Card -->
+    <div class="col-12 col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 diagram-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="icon-square bg-primary-subtle text-primary rounded-3 p-2 d-flex">
+              <span class="material-symbols-outlined fs-4">description</span>
+            </div>
+            <div>
+              <h4 class="h5 fw-bold mb-0">Use Case Diagram</h4>
+              <span class="small text-secondary">Actor & System interaction models</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-muted small mb-4">
+          จัดการและวิเคราะห์ Use Case รวมถึงความสัมพันธ์ระหว่าง Actor และระบบทั้งหมดของโปรเจกต์นี้
+        </p>
+        <button class="btn btn-outline-primary rounded-3 d-inline-flex align-items-center gap-2 mt-auto" (click)="goToSection('use-case')">
+          <span>View Use Case Diagram</span>
+          <span class="material-symbols-outlined fs-6">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Class Diagram Quick Card -->
+    <div class="col-12 col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 diagram-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="icon-square bg-info-subtle text-info rounded-3 p-2 d-flex">
+              <span class="material-symbols-outlined fs-4">schema</span>
+            </div>
+            <div>
+              <h4 class="h5 fw-bold mb-0">Class Diagram</h4>
+              <span class="small text-secondary">Object-oriented structural models</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-muted small mb-4">
+          จัดการสถาปัตยกรรมคลาส, Attributes, Methods, Extend และ Interface เพื่อวางโครงสร้างเชิงวัตถุ
+        </p>
+        <button class="btn btn-outline-primary rounded-3 d-inline-flex align-items-center gap-2 mt-auto" (click)="goToSection('class')">
+          <span>View Class Diagram</span>
+          <span class="material-symbols-outlined fs-6">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

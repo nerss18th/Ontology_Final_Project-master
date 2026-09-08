@@ -73,6 +73,8 @@
           >
             <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
             <span *ngIf="loginForm.get('password')?.hasError('required')">กรุณาใส่รหัสผ่าน</span>
+            <span *ngIf="loginForm.get('password')?.hasError('minlength')">กรุณาใส่รหัสผ่าน 8 ตัวอักษรขึ้นไป</span>
+            <span *ngIf="loginForm.get('password')?.hasError('pattern')">รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น (ต้องมีทั้งคู่)</span>
           </div>
         </div>
 

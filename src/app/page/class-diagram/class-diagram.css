@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+}
+
+.diagram-preview-container {
+  background: var(--bs-tertiary-bg);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.diagram-preview-container:hover {
+  border-color: var(--bs-primary) !important;
+  background-color: var(--bs-light-bg-subtle);
+}
+
+.diagram-img {
+  max-height: 400px;
+  object-fit: contain;
+}

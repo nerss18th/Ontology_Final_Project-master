@@ -1,0 +1,52 @@
+:host {
+  --project-primary: #135bec;
+  display: block;
+}
+
+.sidebar-width {
+  width: 18rem;
+  flex-shrink: 0;
+}
+
+.sidebar {
+  min-height: calc(100vh - 57px);
+  display: flex;
+  flex-direction: column;
+}
+
+.project-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(19, 91, 236, 0.1);
+}
+
+.sidebar .nav-link {
+  color: var(--bs-secondary-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.sidebar .nav-link:hover:not(:disabled) {
+  color: var(--project-primary);
+  background: var(--bs-tertiary-bg);
+}
+
+.sidebar .nav-link.active {
+  color: #ffffff !important;
+  background-color: var(--project-primary) !important;
+  box-shadow: 0 0.25rem 0.75rem rgba(19, 91, 236, 0.2);
+  opacity: 1 !important;
+}
+
+.sidebar .nav-link:disabled:not(.active),
+.sidebar .nav-link.disabled:not(.active) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--bs-secondary-color);
+}

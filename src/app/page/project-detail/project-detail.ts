@@ -1,17 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { UserPlanService } from '../../services/user-plan.service';
 import { Subscription } from 'rxjs';
-
-interface UseCase {
-  id: string;
-  type: string;
-  caption: string;
-  description: string;
-}
+import { ProjectSidebar } from '../project-sidebar/project-sidebar';
+import { UseCaseDiagram } from '../use-case-diagram/use-case-diagram';
+import { ClassDiagram } from '../class-diagram/class-diagram';
+import { Overview } from '../overview/overview';
 
 interface TeamMember {
   email: string;
@@ -22,20 +19,30 @@ interface TeamMember {
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ProjectSidebar,
+    UseCaseDiagram,
+    ClassDiagram,
+    Overview,
+  ],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
 export class ProjectDetail implements OnInit, OnDestroy {
-  public activeSection = 'use-case';
-  public isAddModalOpen = false;
-  public isEditProjectModalOpen = false;
-
+  // Navigation & Project State
+  public activeSection = 'overview';
   public projectName = 'Project 1';
   public projectDetail = 'Example System';
+
+  // Project Edit Modal State
+  public isEditProjectModalOpen = false;
   public editProjectName = '';
   public editProjectDetail = '';
 
+  // Auth & Team State
   public currentUser: any = null;
   public isProUser = true;
   private authSub?: Subscription;
@@ -46,31 +53,22 @@ export class ProjectDetail implements OnInit, OnDestroy {
   public newMemberEmail = '';
   public newMemberRole: 'Editor' | 'Viewer' = 'Editor';
 
-  public newUseCase: UseCase = {
-    id: 'UC-02',
-    type: 'Use Case',
-    caption: '',
-    description: '',
-  };
-
-  public useCases: UseCase[] = [
-    {
-      id: 'UC-01',
-      type: 'Actor',
-      caption: 'Actor',
-      description: 'Example Actor',
-    }
-  ];
-
   constructor(
     private authService: AuthService,
-    private userPlanService: UserPlanService
-  ) { }
+    private userPlanService: UserPlanService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.authSub = this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       this.isProUser = this.userPlanService.canAccessTeamMembers(user);
+    });
+
+    this.route.queryParams.subscribe((params) => {
+      if (params['section']) {
+        this.activeSection = params['section'];
+      }
     });
   }
 
@@ -82,32 +80,19 @@ export class ProjectDetail implements OnInit, OnDestroy {
     this.activeSection = section;
   }
 
-  deleteUseCase(id: string): void {
-    this.useCases = this.useCases.filter((useCase) => useCase.id !== id);
-  }
-
-  openAddModal(): void {
-    const nextNum = this.useCases.length + 1;
-    const padded = nextNum < 10 ? `0${nextNum}` : `${nextNum}`;
-    this.newUseCase = {
-      id: `UC-${padded}`,
-      type: 'Use Case',
-      caption: '',
-      description: '',
-    };
-    this.isAddModalOpen = true;
-  }
-
-  closeAddModal(): void {
-    this.isAddModalOpen = false;
-  }
-
-  saveUseCase(): void {
-    if (!this.newUseCase.caption.trim()) {
-      return;
+  get activeDiagramTitle(): string {
+    switch (this.activeSection) {
+      case 'overview':
+        return 'Overview';
+      case 'use-case':
+        return 'Use case Diagram';
+      case 'class':
+        return 'Class Diagram';
+      case 'activity':
+        return 'Activity Diagram';
+      default:
+        return 'Overview';
     }
-    this.useCases.push({ ...this.newUseCase });
-    this.closeAddModal();
   }
 
   openEditProjectModal(): void {

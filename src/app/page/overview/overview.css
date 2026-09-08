@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.header-banner {
+  background: linear-gradient(135deg, #135bec 0%, #0d44b5 100%);
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+}
+
+.diagram-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.diagram-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+}

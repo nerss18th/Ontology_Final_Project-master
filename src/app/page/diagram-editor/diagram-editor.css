@@ -36,19 +36,20 @@
   white-space: nowrap;
 }
 
-.sidebar .nav-link:hover {
+.sidebar .nav-link:hover:not(:disabled) {
   color: var(--editor-primary);
   background: var(--bs-tertiary-bg);
 }
 
 .sidebar .nav-link.active {
-  color: #fff;
-  background: var(--editor-primary);
+  color: #ffffff !important;
+  background-color: var(--editor-primary) !important;
   box-shadow: 0 0.25rem 0.75rem rgba(19, 91, 236, 0.2);
+  opacity: 1 !important;
 }
 
-.sidebar .nav-link:disabled,
-.sidebar .nav-link.disabled {
+.sidebar .nav-link:disabled:not(.active),
+.sidebar .nav-link.disabled:not(.active) {
   opacity: 0.5;
   cursor: not-allowed;
   background: transparent;

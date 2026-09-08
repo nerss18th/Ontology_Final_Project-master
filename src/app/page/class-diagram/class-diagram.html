@@ -1,0 +1,605 @@
+<section class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-3 p-md-4 p-xl-5">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="h4 fw-bold mb-0">Class Diagram</h2>
+      </div>
+      <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+        [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'class' }">
+        <span class="material-symbols-outlined">edit</span>
+        Edit
+      </a>
+    </div>
+
+    <div
+      class="diagram-preview-container w-100 rounded-3 border p-3 p-md-4 text-center mb-4 overflow-hidden position-relative"
+      [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'class' }" style="cursor: pointer;" title="Click to Edit Diagram">
+      <img [src]="classDiagramImage" alt="Class Diagram"
+        class="diagram-img img-fluid rounded-3 shadow-sm mx-auto d-block" />
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+      <div class="d-flex align-items-center gap-3">
+        <h3 class="h5 fw-bold mb-0">Class Summary</h3>
+        <span class="badge text-bg-light border">{{ classItems.length }} Classes</span>
+      </div>
+      <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
+        (click)="openAddClassModal()">
+        <span class="material-symbols-outlined">add</span>
+        Add Class
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Class ID</th>
+            <th scope="col">Class Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Reference</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of classItems">
+            <th scope="row">{{ item.id }}</th>
+            <td class="fw-semibold text-dark">{{ item.name }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'text-bg-primary': item.type === 'Class',
+                'text-bg-info': item.type === 'Abstract class',
+                'text-bg-warning': item.type === 'Interface'
+              }">{{ item.type }}</span>
+            </td>
+            <td><span class="badge text-bg-light border text-secondary">{{ item.reference || 'None' }}</span>
+            </td>
+            <td>
+              <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-light icon-button" type="button" title="View Detail"
+                  (click)="openViewClassModal(item)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button class="btn btn-sm btn-light icon-button delete-button" type="button"
+                  [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="deleteClassItem(item.id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="classItems.length === 0">
+            <td class="text-center text-body-secondary py-4" colspan="5">No classes yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Add Class Pop-up -->
+<div *ngIf="isAddClassModalOpen" class="modal-backdrop fade show" (click)="closeAddClassModal()"></div>
+<div *ngIf="isAddClassModalOpen" class="modal d-block" tabindex="-1" role="dialog" aria-labelledby="addClassModalTitle">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="max-height: 90vh;">
+      <div
+        class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h5 class="modal-title fw-bold mb-0" id="addClassModalTitle">
+          Add New Class Diagram Element
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeAddClassModal()"></button>
+      </div>
+
+      <form (ngSubmit)="saveClassItem()" class="d-flex flex-column overflow-hidden flex-grow-1">
+        <div class="modal-body p-4 overflow-auto">
+
+          <!-- 1. ส่วนของรายละเอียด (General Details) -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2">
+              1. รายละเอียดทั่วไป (Class Information)
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <label for="classReferenceSelect" class="form-label fw-semibold small">Reference</label>
+                  <select id="classReferenceSelect" class="form-select" [(ngModel)]="newClassItem.reference"
+                    name="classReference">
+                    <option value="None">None</option>
+                    <option value="REF-01">REF-01 (Core Domain)</option>
+                    <option value="REF-02">REF-02 (Authentication)</option>
+                    <option value="REF-03">REF-03 (Data Management)</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label for="classIdInput" class="form-label fw-semibold small">Class ID (Auto)</label>
+                  <input id="classIdInput" type="text" class="form-control bg-body-tertiary"
+                    [(ngModel)]="newClassItem.id" name="classId" readonly />
+                </div>
+                <div class="col-12 col-md-4">
+                  <label for="classTypeSelect" class="form-label fw-semibold small">Class Type <span
+                      class="text-danger">*</span></label>
+                  <select id="classTypeSelect" class="form-select" [(ngModel)]="newClassItem.type" name="classType">
+                    <option value="Class">Class</option>
+                    <option value="Abstract class">Abstract class</option>
+                    <option value="Interface">Interface</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="classNameInput" class="form-label fw-semibold small">Class Name <span
+                      class="text-danger">*</span></label>
+                  <input id="classNameInput" type="text" class="form-control" placeholder="e.g. User"
+                    [(ngModel)]="newClassItem.name" name="className" required />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="classDescInput" class="form-label fw-semibold small">Description</label>
+                  <textarea id="classDescInput" class="form-control" rows="1" placeholder="คำอธิบายรายละเอียดคลาส..."
+                    [(ngModel)]="newClassItem.description" name="classDescription"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. ส่วนของการอธิบาย Extend -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2">
+              2. Extend (Extend Class)
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label for="extendToSelect" class="form-label fw-semibold small">Extend to (Class)</label>
+                  <select id="extendToSelect" class="form-select" [(ngModel)]="newClassItem.extendToClass"
+                    name="extendToClass" (change)="onExtendToChange()">
+                    <option value="None">None</option>
+                    <option *ngFor="let item of classItems" [value]="item.name">{{ item.name }} ({{ item.type }})
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label for="extendClassIdInput" class="form-label fw-semibold small">Matched Class ID (Extend)</label>
+                  <input id="extendClassIdInput" type="text" class="form-control bg-body-tertiary"
+                    [value]="newClassItem.extendToClassId || '-'" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. ส่วนของการอธิบาย Interface -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div
+              class="card-header bg-light-subtle fw-bold text-primary d-flex align-items-center justify-content-between py-2">
+              <div>
+                3. Interface (Implement Interfaces)
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                (click)="addImplementInterface()">
+                <span class="material-symbols-outlined fs-6">add</span> Add Interface
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div *ngIf="newClassItem.implementsInterfaces.length === 0" class="text-muted small italic py-2">
+                ยังไม่ได้เลือก Interface ที่ต้องการ Implement (กด + Add Interface เพื่อเพิ่ม)
+              </div>
+
+              <div *ngFor="let impl of newClassItem.implementsInterfaces; let i = index"
+                class="row g-2 align-items-center mb-2 bg-light p-2 rounded border">
+                <div class="col-12 col-md-5">
+                  <label class="form-label small text-secondary mb-1">Class Name (Interface)</label>
+                  <select class="form-select form-select-sm" [(ngModel)]="impl.className" [name]="'implName_' + i"
+                    (change)="onImplementClassNameChange(impl)">
+                    <option value="">-- เลือก Interface/Class --</option>
+                    <option *ngFor="let item of classItems" [value]="item.name">{{ item.name }} ({{ item.type }})
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-5">
+                  <label class="form-label small text-secondary mb-1">Class ID</label>
+                  <input type="text" class="form-control form-control-sm bg-body-tertiary" [value]="impl.classId || '-'"
+                    readonly />
+                </div>
+                <div class="col-12 col-md-2 text-end pt-3">
+                  <button type="button" class="btn btn-sm btn-outline-danger icon-button"
+                    (click)="removeImplementInterface(i)" title="Delete Interface">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. ส่วนของการอธิบาย Attribute -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div
+              class="card-header bg-light-subtle fw-bold text-primary d-flex align-items-center justify-content-between py-2">
+              <div>
+                4. คุณลักษณะ (Attributes)
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                (click)="addAttribute()">
+                <span class="material-symbols-outlined fs-6">add</span> Add Attribute
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div *ngIf="newClassItem.attributes.length === 0" class="text-muted small italic py-2">
+                ยังไม่มีข้อมูล Attribute (กด + Add Attribute เพื่อเพิ่ม)
+              </div>
+
+              <div class="table-responsive" *ngIf="newClassItem.attributes.length > 0">
+                <table class="table table-sm table-bordered bg-white align-middle mb-0">
+                  <thead class="table-light small text-secondary">
+                    <tr>
+                      <th style="width: 20%;">Attribute Name</th>
+                      <th style="width: 16%;">Encapsulation</th>
+                      <th style="width: 16%;">Data Type</th>
+                      <th style="width: 12%;">Data Size</th>
+                      <th style="width: 18%;">Description</th>
+                      <th style="width: 18%;">Example/Format</th>
+                      <th style="width: 50px;" class="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let attr of newClassItem.attributes; let i = index">
+                      <td>
+                        <input type="text" class="form-control form-control-sm" placeholder="e.g. userId"
+                          [(ngModel)]="attr.name" [name]="'attrName_' + i" />
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm" [(ngModel)]="attr.encapsulation"
+                          [name]="'attrEncap_' + i">
+                          <option value="private">private (-)</option>
+                          <option value="public">public (+)</option>
+                          <option value="protected">protected (#)</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" placeholder="e.g. String"
+                          [(ngModel)]="attr.dataType" [name]="'attrDataType_' + i" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" placeholder="e.g. 50"
+                          [(ngModel)]="attr.dataSize" [name]="'attrDataSize_' + i" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" placeholder="คำอธิบาย..."
+                          [(ngModel)]="attr.description" [name]="'attrDesc_' + i" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" placeholder="e.g. user_123"
+                          [(ngModel)]="attr.exampleFormat" [name]="'attrExample_' + i" />
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger icon-button"
+                          (click)="removeAttribute(i)" title="Remove Attribute">
+                          <span class="material-symbols-outlined fs-6">delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. ส่วนของการอธิบาย Method -->
+          <div class="card border mb-3 rounded-3 shadow-sm">
+            <div
+              class="card-header bg-light-subtle fw-bold text-primary d-flex align-items-center justify-content-between py-2">
+              <div>
+                5. เมธอด (Methods)
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                (click)="addMethod()">
+                <span class="material-symbols-outlined fs-6">add</span> Add Method
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div *ngIf="newClassItem.methods.length === 0" class="text-muted small italic py-2">
+                ยังไม่มีข้อมูล Method (กด + Add Method เพื่อเพิ่ม)
+              </div>
+
+              <div *ngFor="let m of newClassItem.methods; let mIdx = index"
+                class="border rounded p-3 mb-4 bg-light shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                  <span class="fw-bold text-primary">Method #{{ mIdx + 1 }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="removeMethod(mIdx)"
+                    title="Remove Method">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </div>
+
+                <!-- 1) Method Main Details Table -->
+                <div class="table-responsive mb-3">
+                  <table class="table table-sm table-bordered bg-white align-middle mb-0">
+                    <thead class="table-light small text-secondary">
+                      <tr>
+                        <th style="width: 25%;">Method Type</th>
+                        <th style="width: 20%;">Encapsulation</th>
+                        <th style="width: 25%;">Method Name</th>
+                        <th style="width: 30%;">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <select class="form-select form-select-sm" [(ngModel)]="m.type" [name]="'mType_' + mIdx">
+                            <option value="Constructor/Overload">Constructor/Overload</option>
+                            <option value="Method">Method</option>
+                            <option value="Abstract Method">Abstract Method</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select class="form-select form-select-sm" [(ngModel)]="m.encapsulation" [name]="'mEncap_' + mIdx">
+                            <option value="private">private (-)</option>
+                            <option value="public">public (+)</option>
+                            <option value="protected">protected (#)</option>
+                          </select>
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="e.g. getUserInfo"
+                            [(ngModel)]="m.name" [name]="'mName_' + mIdx" />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="คำอธิบายฟังก์ชัน..."
+                            [(ngModel)]="m.description" [name]="'mDesc_' + mIdx" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 2) Return Details Table -->
+                <div class="table-responsive mb-3">
+                  <table class="table table-sm table-bordered bg-white align-middle mb-0">
+                    <thead class="table-light small">
+                      <tr class="text-primary fw-bold">
+                        <th colspan="3">Return Details</th>
+                      </tr>
+                      <tr class="text-secondary">
+                        <th style="width: 30%;">Return Value</th>
+                        <th style="width: 30%;">Return Data Type</th>
+                        <th style="width: 40%;">Return Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="e.g. result"
+                            [(ngModel)]="m.returnValue" [name]="'mRetVal_' + mIdx" />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="e.g. boolean, void"
+                            [(ngModel)]="m.returnDataType" [name]="'mRetType_' + mIdx" />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="คำอธิบายผลลัพธ์..."
+                            [(ngModel)]="m.returnDescription" [name]="'mRetDesc_' + mIdx" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- 3) List of Parameters Table -->
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered bg-white align-middle mb-0">
+                    <thead class="table-light small">
+                      <tr>
+                        <th colspan="3" class="text-primary fw-bold">List of Parameters</th>
+                        <th class="text-end">
+                          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small"
+                            (click)="addMethodParameter(m)">
+                            + Add Parameter
+                          </button>
+                        </th>
+                      </tr>
+                      <tr class="text-secondary" *ngIf="m.parameters.length > 0">
+                        <th style="width: 30%;">Parameter Name</th>
+                        <th style="width: 30%;">Data Type</th>
+                        <th style="width: 35%;">Description</th>
+                        <th style="width: 50px;" class="text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let p of m.parameters; let pIdx = index">
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="Param Name (e.g. id)"
+                            [(ngModel)]="p.name" [name]="'pName_' + mIdx + '_' + pIdx" />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="Data Type (e.g. String)"
+                            [(ngModel)]="p.dataType" [name]="'pType_' + mIdx + '_' + pIdx" />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" placeholder="Description"
+                            [(ngModel)]="p.description" [name]="'pDesc_' + mIdx + '_' + pIdx" />
+                        </td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-sm btn-outline-danger icon-button"
+                            (click)="removeMethodParameter(m, pIdx)" title="Remove Param">
+                            <span class="material-symbols-outlined fs-6">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                      <tr *ngIf="m.parameters.length === 0">
+                        <td colspan="4" class="text-muted small italic text-center py-2">ไม่มี Parameter</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
+            (click)="closeAddClassModal()">Cancel</button>
+          <button type="submit"
+            class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
+            [disabled]="!newClassItem.name.trim()">
+            <span class="material-symbols-outlined fs-6">check</span>Save Class
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- View Class Detail Pop-up -->
+<div *ngIf="isViewClassModalOpen" class="modal-backdrop fade show" (click)="closeViewClassModal()"></div>
+<div *ngIf="isViewClassModalOpen && selectedClassDetail" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="viewClassModalTitle">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div
+        class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge text-bg-primary fs-6">{{ selectedClassDetail.type }}</span>
+          <h5 class="modal-title fw-bold mb-0" id="viewClassModalTitle">{{ selectedClassDetail.name }} ({{
+            selectedClassDetail.id }})</h5>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeViewClassModal()"></button>
+      </div>
+
+      <div class="modal-body p-4 overflow-auto">
+        <!-- Overview -->
+        <div class="mb-4">
+          <div class="text-muted small">Description:</div>
+          <div class="fw-medium">{{ selectedClassDetail.description || 'No description provided.' }}</div>
+          <div class="mt-2 small text-secondary">Reference: <strong class="text-dark">{{ selectedClassDetail.reference
+              || 'None' }}</strong></div>
+        </div>
+
+        <!-- Extends Table -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">Extends</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Class Name</th>
+                  <th>Class ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="selectedClassDetail.extendToClass && selectedClassDetail.extendToClass !== 'None'">
+                  <td class="fw-semibold">{{ selectedClassDetail.extendToClass }}</td>
+                  <td><code>{{ selectedClassDetail.extendToClassId || '-' }}</code></td>
+                </tr>
+                <tr *ngIf="!selectedClassDetail.extendToClass || selectedClassDetail.extendToClass === 'None'">
+                  <td colspan="2" class="text-center text-muted small py-2">No class extended.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Implements Interfaces Table -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">Implements Interfaces</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Interface Name</th>
+                  <th>Interface ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let impl of selectedClassDetail.implementsInterfaces">
+                  <td class="fw-semibold">{{ impl.className }}</td>
+                  <td><code>{{ impl.classId || '-' }}</code></td>
+                </tr>
+                <tr *ngIf="selectedClassDetail.implementsInterfaces.length === 0">
+                  <td colspan="2" class="text-center text-muted small py-2">No interface implemented.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Attributes Table -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">
+            Attributes ({{ selectedClassDetail.attributes.length }})
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Encap</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Size</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let attr of selectedClassDetail.attributes">
+                  <td><code>{{ attr.encapsulation }}</code></td>
+                  <td class="fw-semibold">{{ attr.name }}</td>
+                  <td><code>{{ attr.dataType }}</code></td>
+                  <td>{{ attr.dataSize || '-' }}</td>
+                  <td class="small">{{ attr.description || '-' }}</td>
+                </tr>
+                <tr *ngIf="selectedClassDetail.attributes.length === 0">
+                  <td colspan="5" class="text-center text-muted small py-2">No attributes defined.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Methods Table -->
+        <div>
+          <h6 class="fw-bold text-primary">
+            Methods ({{ selectedClassDetail.methods.length }})
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Encap</th>
+                  <th>Method Type</th>
+                  <th>Method Name</th>
+                  <th>Parameters</th>
+                  <th>Return Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of selectedClassDetail.methods">
+                  <td><code>{{ m.encapsulation }}</code></td>
+                  <td><span class="badge text-bg-light border text-dark">{{ m.type }}</span></td>
+                  <td class="fw-semibold">{{ m.name }}()</td>
+                  <td class="small">
+                    <ng-container *ngIf="m.parameters && m.parameters.length > 0; else noParams">
+                      <div *ngFor="let p of m.parameters">
+                        <strong>{{ p.name }}</strong>: <code>{{ p.dataType }}</code>
+                        <span *ngIf="p.description" class="text-muted">({{ p.description }})</span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noParams><span class="text-muted">-</span></ng-template>
+                  </td>
+                  <td>
+                    <code *ngIf="m.returnDataType">{{ m.returnDataType }}</code>
+                    <span *ngIf="!m.returnDataType" class="text-muted">-</span>
+                    <div *ngIf="m.returnDescription" class="small text-muted">{{ m.returnDescription }}</div>
+                  </td>
+                  <td class="small">{{ m.description || '-' }}</td>
+                </tr>
+                <tr *ngIf="selectedClassDetail.methods.length === 0">
+                  <td colspan="6" class="text-center text-muted small py-2">No methods defined.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-body-tertiary px-4 py-2 border-top">
+        <button type="button" class="btn btn-secondary px-4 rounded-3" (click)="closeViewClassModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
