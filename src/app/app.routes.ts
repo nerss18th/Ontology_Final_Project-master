@@ -13,6 +13,6 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'promotion', component: Promotion },
   { path: 'dashboard', component: Dashboard },
-  { path: 'dashboard/project/1/edit', component: DiagramEditor },
-  { path: 'dashboard/project/1', component: ProjectDetail },
+  { path: 'dashboard/project/:id/edit', component: DiagramEditor },
+  { path: 'dashboard/project/:id', component: ProjectDetail },
 ];

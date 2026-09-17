@@ -71,12 +71,12 @@ export class Promotion {
     console.log('Selected plan:', this.selectedPlanId);
     this.authService.updateUserPlan(this.selectedPlanId).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/dashboard'], { queryParams: { tab: 'profile' } });
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Failed to save plan:', err);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/dashboard'], { queryParams: { tab: 'profile' } });
         this.cdr.detectChanges();
       },
     });

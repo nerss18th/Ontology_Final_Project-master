@@ -1,0 +1,16 @@
+.activity-diagram-container {
+  padding-bottom: 3rem;
+}
+
+.card {
+  transition: all 0.2s ease-in-out;
+}
+
+.table th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.material-symbols-outlined {
+  vertical-align: middle;
+}

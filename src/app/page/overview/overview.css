@@ -2,20 +2,18 @@
   display: block;
 }
 
-.header-banner {
-  background: linear-gradient(135deg, #135bec 0%, #0d44b5 100%);
+.wiki-container {
+  background-color: #ffffff;
 }
 
-.stat-icon-wrapper {
-  width: 48px;
-  height: 48px;
+.wiki-infobox-table th {
+  font-weight: 500;
 }
 
-.diagram-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.wiki-infobox-table td {
+  font-size: 13px;
 }
 
-.diagram-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+.wiki-badge {
+  font-family: monospace;
 }

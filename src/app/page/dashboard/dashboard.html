@@ -1,21 +1,25 @@
 <div class="d-flex flex-column min-vh-100 bg-light font-inter pt-5">
   <div class="d-flex flex-grow-1 overflow-hidden mt-3">
-    <!-- Sidebar Navigation (Hidden on screens below lg) -->
+    <!-- แถบนำทางด้านข้าง (ซ่อนเมื่อหน้าจอเล็กกว่า lg) -->
     <aside class="d-none d-lg-flex flex-column border-end bg-white p-4 sidebar-width flex-shrink-0">
       <div class="d-flex align-items-center gap-3 mb-4" *ngIf="currentUser$ | async as user">
         <div
           class="rounded-circle border border-primary border-opacity-25 p-1 d-flex align-items-center justify-content-center"
           style="width: 48px; height: 48px">
-          <span
+          <img *ngIf="user.pic" [src]="'http://localhost:3000' + user.pic" class="rounded-circle object-fit-cover w-100 h-100" />
+          <span *ngIf="!user.pic"
             class="material-symbols-outlined bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center w-100 h-100">person</span>
         </div>
         <div class="text-truncate" style="max-width: 170px">
           <h6 class="fw-bold mb-0 text-dark text-truncate">
             {{ user.name || user.email.split('@')[0] }}
           </h6>
-          <small class="text-secondary text-truncate d-block">{{
-            user.plan ? user.plan + ' Account' : 'Standard Account'
-            }}</small>
+          <small *ngIf="user.plan === 'Pro'" class="text-secondary text-truncate d-block">
+            Pro Account
+          </small>
+          <a *ngIf="user.plan !== 'Pro'" routerLink="/promotion" class="text-primary text-truncate d-block text-decoration-none hover-underline" style="cursor: pointer; font-size: 0.875em;">
+            Standard Account <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: text-bottom;">upgrade</span>
+          </a>
         </div>
       </div>
 
@@ -41,10 +45,10 @@
       </nav>
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- พื้นที่แสดงเนื้อหาหลัก -->
     <main class="flex-grow-1 overflow-auto p-3 p-sm-4 p-lg-5">
       <div class="container-fluid max-w-5xl mx-auto px-0 d-flex flex-column gap-4">
-        <!-- Mobile Tabs Navigation (Visible only below lg) -->
+        <!-- แถบนำทางบนมือถือ (แสดงเมื่อหน้าจอเล็กกว่า lg) -->
         <div class="d-flex d-lg-none bg-white rounded-3 border p-1 mb-2">
           <button
             class="btn flex-grow-1 py-2 fw-semibold text-sm d-flex align-items-center justify-content-center gap-2 rounded-2 border-0"
@@ -62,9 +66,9 @@
           </button>
         </div>
 
-        <!-- My Profile -->
+        <!-- ข้อมูลส่วนตัว (My Profile) -->
         <ng-container *ngIf="activeTab === 'profile'">
-          <!-- Profile Header Card (Highly Responsive) -->
+          <!-- การ์ดแสดงส่วนหัวของโปรไฟล์ (รองรับทุกขนาดหน้าจอ) -->
           <div class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden">
             <div
               class="bg-gradient-header position-relative d-flex align-items-start align-items-sm-end justify-content-center justify-content-sm-start px-3 px-sm-4 px-lg-5 pt-3 pb-sm-4"
@@ -90,14 +94,19 @@
                   <div
                     class="bg-white border border-4 border-white shadow-sm rounded-4 overflow-hidden d-flex align-items-center justify-content-center flex-shrink-0"
                     style="width: 120px; height: 120px">
-                    <span
+                    <img *ngIf="(currentUser$ | async)?.pic as pic" [src]="'http://localhost:3000' + pic" class="object-fit-cover w-100 h-100" />
+                    <span *ngIf="!(currentUser$ | async)?.pic"
                       class="material-symbols-outlined bg-light text-secondary d-flex align-items-center justify-content-center w-100 h-100"
                       style="font-size: 60px">person</span>
                   </div>
                   <div class="pb-2" *ngIf="currentUser$ | async as user; else guestInfo">
-                    <p class="text-secondary fw-medium mb-0">
-                      {{ user.plan ? user.plan + ' Plan Member' : 'Standard Member' }}
+                    <p *ngIf="user.plan === 'Pro'" class="text-secondary fw-medium mb-0">
+                      Pro Plan Member
                     </p>
+                    <a *ngIf="user.plan !== 'Pro'" routerLink="/promotion" class="text-primary fw-medium mb-0 text-decoration-none d-inline-flex align-items-center gap-1 hover-underline" style="cursor: pointer;">
+                      Standard Member 
+                      <span class="badge bg-primary text-white rounded-pill ms-2" style="font-size: 0.75rem;">Upgrade to Pro</span>
+                    </a>
                   </div>
                   <ng-template #guestInfo>
                     <div class="pb-2">
@@ -105,10 +114,10 @@
                     </div>
                   </ng-template>
                 </div>
-                <div class="pb-2 w-100 w-md-auto d-flex justify-content-end">
+                <div class="pb-2 w-100 w-md-auto d-flex justify-content-end" *ngIf="currentUser$ | async as user">
                   <button
                     class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center gap-1.5 fw-medium rounded-3 py-1.5 px-3"
-                    style="font-size: 13px">
+                    style="font-size: 13px" (click)="openEditProfileModal(user)">
                     <span class="material-symbols-outlined fs-6">edit</span>
                     Edit Profile
                   </button>
@@ -117,7 +126,7 @@
             </div>
           </div>
 
-          <!-- Personal Information -->
+          <!-- ข้อมูลส่วนบุคคล -->
           <div class="card border border-light-subtle shadow-sm rounded-4" *ngIf="currentUser$ | async as user">
             <div class="card-body p-4 p-lg-5">
               <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
@@ -126,19 +135,19 @@
               </h5>
 
               <div class="row g-3">
-                <!-- Name Field -->
+                <!-- ช่องกรอกชื่อ -->
                 <div class="col-12 col-md-4">
                   <div class="p-3 bg-light rounded-3 h-100">
                     <div class="text-secondary small fw-medium mb-1" style="font-size: 12px">
                       ชื่อ - นามสกุล
                     </div>
                     <div class="fw-bold text-dark" style="font-size: 14px">
-                      {{ user.name || '-' }}
+                      {{ user.name || user.username || '-' }}
                     </div>
                   </div>
                 </div>
 
-                <!-- Email Field -->
+                <!-- ช่องกรอกอีเมล -->
                 <div class="col-12 col-md-4">
                   <div class="p-3 bg-light rounded-3 h-100">
                     <div class="text-secondary small fw-medium mb-1" style="font-size: 12px">
@@ -150,7 +159,7 @@
                   </div>
                 </div>
 
-                <!-- Phone Field -->
+                <!-- ช่องกรอกเบอร์โทรศัพท์ -->
                 <div class="col-12 col-md-4">
                   <div class="p-3 bg-light rounded-3 h-100">
                     <div class="text-secondary small fw-medium mb-1" style="font-size: 12px">
@@ -165,34 +174,35 @@
             </div>
           </div>
 
-          <!-- About Me -->
-          <div class="card border border-light-subtle shadow-sm rounded-4">
+          <!-- เกี่ยวกับฉัน -->
+          <div class="card border border-light-subtle shadow-sm rounded-4" *ngIf="currentUser$ | async as user">
             <div class="card-body p-4 p-lg-5">
               <h5 class="fw-bold text-dark mb-3">Description</h5>
               <p class="text-secondary mb-0" style="line-height: 1.75; font-size: 14px">
-                Passionate digital product designer with over 8 years of experience building
-                human-centric experiences. I specialize in bridging the gap between complex
-                engineering requirements and intuitive visual interfaces. My approach combines
-                data-driven research with pixel-perfect execution to create tools that people
-                actually enjoy using.
+                {{ user.description || 'No description provided.' }}
               </p>
             </div>
           </div>
         </ng-container>
 
-        <!-- My Projects -->
+        <!-- โปรเจกต์ของฉัน (My Projects) -->
         <div class="card border border-light-subtle shadow-sm rounded-4" *ngIf="activeTab === 'projects'">
           <div class="bg-light p-4 p-lg-5 font-inter min-vh-100">
             <div class="container-fluid max-w-6xl mx-auto px-0 d-flex flex-column gap-4 gap-lg-5">
-              <!-- Title & Actions -->
+              <!-- หัวข้อและปุ่มดำเนินการ -->
               <div class="d-flex align-items-center justify-content-between">
                 <h2 class="fw-bolder text-dark m-0 fs-3">My Projects</h2>
               </div>
 
-              <!-- Project Grid -->
+              <!-- ตารางแสดงโปรเจกต์ -->
               <div class="row g-4">
-                <!-- Project Cards -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let proj of projects">
+                <!-- การ์ดโปรเจกต์ -->
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 position-relative" *ngFor="let proj of projects">
+                  <button class="btn btn-light position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center p-1 delete-project-btn"
+                    style="z-index: 10; width: 32px; height: 32px; right: 24px; top: 16px; opacity: 0.9;"
+                    (click)="deleteProject(proj.id, $event)" title="Delete Project">
+                    <span class="material-symbols-outlined text-danger" style="font-size: 18px;">delete</span>
+                  </button>
                   <a *ngIf="proj.link; else unlinkedCard"
                     class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100 text-decoration-none"
                     [routerLink]="proj.link"
@@ -220,7 +230,7 @@
                   </ng-template>
                 </div>
 
-                <!-- Add New Project Placeholder -->
+                <!-- ช่องเพิ่มโปรเจกต์ใหม่ -->
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div
                     class="dashed-card d-flex flex-column align-items-center justify-content-center rounded-4 h-100 p-3 ratio ratio-16x9 m-0"
@@ -240,7 +250,40 @@
   </div>
 </div>
 
-<!-- Add New Project Modal -->
+<!-- ป๊อปอัปอัปเกรดแพ็กเกจ -->
+<div *ngIf="isUpgradeModalOpen" class="modal-backdrop fade show" (click)="closeUpgradeModal()"></div>
+<div *ngIf="isUpgradeModalOpen" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="upgradeModalTitle">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-warning-subtle px-4 py-3 border-bottom border-warning border-opacity-25">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0 text-dark" id="upgradeModalTitle">
+          <span class="material-symbols-outlined text-warning" style="font-size: 28px;">workspace_premium</span>
+          Upgrade Required
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeUpgradeModal()"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <div class="mb-4">
+          <span class="material-symbols-outlined text-muted" style="font-size: 64px; opacity: 0.5;">lock</span>
+        </div>
+        <h5 class="fw-bold mb-3">คุณถึงขีดจำกัดแล้ว</h5>
+        <p class="text-secondary mb-0">บัญชี Standard สามารถสร้างโปรเจกต์ได้สูงสุด 1 โปรเจกต์<br>อัปเกรดเป็นแพ็กเกจ Pro เพื่อปลดล็อกการสร้างโปรเจกต์ได้ไม่จำกัดและใช้งานฟีเจอร์อื่นๆ แบบเต็มรูปแบบ</p>
+      </div>
+      <div class="modal-footer bg-body-tertiary px-4 py-3 border-top justify-content-center gap-2">
+        <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3" (click)="closeUpgradeModal()">
+          ยกเลิก
+        </button>
+        <button type="button" class="btn btn-primary px-4 fw-semibold rounded-3 d-flex align-items-center gap-2" routerLink="/promotion" (click)="closeUpgradeModal()">
+          <span class="material-symbols-outlined" style="font-size: 18px;">upgrade</span>
+          อัปเกรดเป็น Pro
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ป๊อปอัปสร้างโปรเจกต์ใหม่ -->
 <div *ngIf="isAddProjectModalOpen" class="modal-backdrop fade show" (click)="closeAddProjectModal()"></div>
 <div *ngIf="isAddProjectModalOpen" class="modal d-block" tabindex="-1" role="dialog"
   aria-labelledby="addProjectModalTitle">
@@ -272,7 +315,7 @@
             (click)="closeAddProjectModal()">Cancel</button>
           <button type="submit"
             class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
-            [disabled]="!newProject.name.trim()">
+            [disabled]="!newProject.name.trim() || isSavingProject">
             <span class="material-symbols-outlined fs-6">check</span>Create Project
           </button>
         </div>
@@ -280,3 +323,64 @@
     </div>
   </div>
 </div>
+
+<!-- ป๊อปอัปแก้ไขโปรไฟล์ -->
+<div *ngIf="isEditProfileModalOpen" class="modal-backdrop fade show" (click)="closeEditProfileModal()"></div>
+<div *ngIf="isEditProfileModalOpen" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="editProfileModalTitle">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0" id="editProfileModalTitle">
+          <span class="material-symbols-outlined text-primary">edit_note</span>
+          Edit Profile
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeEditProfileModal()"></button>
+      </div>
+      <form (ngSubmit)="saveProfile()">
+        <div class="modal-body p-4">
+          <div class="mb-3 d-flex flex-column align-items-center">
+            <div class="position-relative mb-2" style="width: 100px; height: 100px;">
+              <img *ngIf="selectedProfilePicPreview" [src]="selectedProfilePicPreview" class="rounded-circle object-fit-cover w-100 h-100 border shadow-sm" />
+              <div *ngIf="!selectedProfilePicPreview" class="rounded-circle bg-light border shadow-sm w-100 h-100 d-flex align-items-center justify-content-center">
+                <span class="material-symbols-outlined text-secondary" style="font-size: 40px;">person</span>
+              </div>
+            </div>
+            <input type="file" class="form-control form-control-sm w-75" accept="image/*" (change)="onProfilePicSelected($event)" />
+            <div class="form-text text-muted small mt-1">ไฟล์รูปภาพ (JPG, PNG) ขนาดไม่เกิน 5 MB</div>
+          </div>
+          <div class="mb-3">
+            <label for="editProfileNameInput" class="form-label fw-semibold small">ชื่อ - นามสกุล <span
+                class="text-danger">*</span></label>
+            <input id="editProfileNameInput" type="text" class="form-control" placeholder="กรอกชื่อ - นามสกุล"
+              [(ngModel)]="editName" name="editName" required />
+          </div>
+          <div class="mb-3">
+            <label for="editProfileEmailInput" class="form-label fw-semibold small">อีเมล</label>
+            <input id="editProfileEmailInput" type="email" class="form-control" placeholder="e.g. user@example.com"
+              [(ngModel)]="editEmail" name="editEmail" />
+          </div>
+          <div class="mb-3">
+            <label for="editProfilePhoneInput" class="form-label fw-semibold small">เบอร์โทรศัพท์</label>
+            <input id="editProfilePhoneInput" type="tel" class="form-control" placeholder="e.g. 081-234-5678"
+              [(ngModel)]="editPhone" name="editPhone" />
+          </div>
+          <div class="mb-2">
+            <label for="editProfileDescInput" class="form-label fw-semibold small">Description</label>
+            <textarea id="editProfileDescInput" class="form-control" rows="3" placeholder="เขียนรายละเอียดเกี่ยวกับตัวคุณ"
+              [(ngModel)]="editDescription" name="editDescription"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
+            (click)="closeEditProfileModal()">Cancel</button>
+          <button type="submit"
+            class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
+            [disabled]="!editName.trim() || isSavingProfile">
+            <span class="material-symbols-outlined fs-6">check</span>Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

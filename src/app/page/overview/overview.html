@@ -1,79 +1,257 @@
-<div class="overview-container">
-  <!-- Header Banner -->
-  <div class="card border-0 bg-primary text-white rounded-4 shadow-sm p-4 p-md-5 mb-4 position-relative overflow-hidden header-banner">
-    <div class="position-relative z-1">
-      <span class="badge bg-white bg-opacity-25 text-white mb-2 px-3 py-2 rounded-pill fw-semibold">
-        Project Overview
-      </span>
-      <h2 class="display-6 fw-bold mb-2">{{ projectName }}</h2>
-      <p class="lead mb-0 text-white-50">{{ projectDetail }}</p>
+<div class="container-fluid py-4 wiki-container font-inter">
+
+  <div *ngIf="isLoading" class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
-  <!-- Stats Grid -->
-  <div class="row g-3 mb-4">
-    <div *ngFor="let stat of stats" class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
-        <div class="card-body p-2 d-flex align-items-center justify-content-between">
-          <div>
-            <div class="text-secondary small fw-semibold text-uppercase mb-1">{{ stat.title }}</div>
-            <h3 class="fw-bold mb-0 text-dark">{{ stat.count }}</h3>
+  <div class="row g-4" *ngIf="!isLoading">
+
+    <!-- พื้นที่แสดงเนื้อหาหลัก -->
+    <div class="col-12 col-lg-8 order-2 order-lg-1">
+      <h1 class="wiki-title mb-1 fw-bold" style="font-family: 'Times New Roman', Times, serif;">{{ projectName }}</h1>
+      <hr class="wiki-hr mt-2 mb-4 border-secondary border-opacity-25">
+
+      <p class="wiki-paragraph mb-4 fs-6" style="line-height: 1.6;">{{ projectDetail || 'No description provided for
+        this project.' }}</p>
+
+      <div class="wiki-toc bg-light border border-secondary border-opacity-25 rounded-1 p-3 mb-4 d-inline-block">
+        <h5 class="fw-bold fs-6 mb-2 text-center">Contents</h5>
+        <ul class="list-unstyled mb-0 small">
+          <li class="mb-1"><a href="javascript:void(0)" (click)="scrollTo('use-case-entities')" class="text-decoration-none">1. Use Case Entities</a></li>
+          <li class="mb-1"><a href="javascript:void(0)" (click)="scrollTo('class-entities')" class="text-decoration-none">2. Class Entities</a></li>
+          <li class="mb-0"><a href="javascript:void(0)" (click)="scrollTo('activity-entities')" class="text-decoration-none">3. Activity Entities</a></li>
+        </ul>
+      </div>
+
+      <!-- ส่วนของ Use Case -->
+      <h3 id="use-case-entities" class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">1. Use
+        Case Entities</h3>
+      <div class="wiki-entity-list mb-4">
+        <div class="wiki-entity-item mb-3 ms-2" *ngFor="let uc of useCases">
+          <div class="d-flex align-items-baseline gap-2 mb-1" (click)="openEntityModal('use-case', uc)"
+            style="cursor: pointer;">
+            <span class="badge bg-success text-white wiki-badge rounded-1" style="font-size: 0.7rem;">ID: {{ uc.id
+              }}</span>
+            <span class="fw-bold text-dark text-decoration-underline text-primary" style="font-size: 15px;">{{
+              uc.caption || uc.use_case_name || uc.name || 'Unnamed Use Case' }}</span>
           </div>
-          <div class="stat-icon-wrapper rounded-3 d-flex align-items-center justify-content-center bg-{{ stat.color }}-subtle text-{{ stat.color }}">
-            <span class="material-symbols-outlined fs-4">{{ stat.icon }}</span>
-          </div>
+          <p class="wiki-entity-desc ms-4 mb-0 text-secondary" style="font-size: 14px;">{{ uc.description || 'No
+            description available.' }}</p>
         </div>
+        <div *ngIf="useCases.length === 0" class="text-muted small fst-italic ms-3">No use case entities defined.</div>
+      </div>
+
+      <!-- ส่วนของ Class -->
+      <h3 id="class-entities" class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">2. Class
+        Entities</h3>
+      <div class="wiki-entity-list mb-4">
+        <div class="wiki-entity-item mb-3 ms-2" *ngFor="let cls of classes">
+          <div class="d-flex align-items-baseline gap-2 mb-1" (click)="openEntityModal('class', cls)"
+            style="cursor: pointer;">
+            <span class="badge bg-info text-white wiki-badge rounded-1" style="font-size: 0.7rem;">ID: {{ cls.id
+              }}</span>
+            <span class="fw-bold text-dark text-decoration-underline text-primary" style="font-size: 15px;">{{
+              cls.class_name || cls.name || cls.caption || 'Unnamed Class' }}</span>
+          </div>
+          <p class="wiki-entity-desc ms-4 mb-0 text-secondary" style="font-size: 14px;">{{ cls.description || 'No
+            description available.' }}</p>
+        </div>
+        <div *ngIf="classes.length === 0" class="text-muted small fst-italic ms-3">No class entities defined.</div>
+      </div>
+
+      <!-- ส่วนของ Activity Diagram -->
+      <h3 id="activity-entities" class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">3.
+        Activity Entities</h3>
+      <div class="wiki-entity-list mb-4">
+        <div class="wiki-entity-item mb-3 ms-2" *ngFor="let act of activityDiagrams">
+          <div class="d-flex align-items-baseline gap-2 mb-1" (click)="openEntityModal('activity', act)"
+            style="cursor: pointer;">
+            <span class="badge bg-warning text-dark wiki-badge rounded-1" style="font-size: 0.7rem;">ID: {{
+              act.activityId || act.activity_id || act.id }}</span>
+            <span class="fw-bold text-dark text-decoration-underline text-primary" style="font-size: 15px;">{{
+              act.activityName || act.activity_name || act.name || act.caption || 'Unnamed Activity' }}</span>
+          </div>
+          <p class="wiki-entity-desc ms-4 mb-0 text-secondary" style="font-size: 14px;">{{ act.description || 'No
+            description available.' }}</p>
+        </div>
+        <div *ngIf="activityDiagrams.length === 0" class="text-muted small fst-italic ms-3">No activity entities
+          defined.</div>
+      </div>
+
+    </div>
+
+    <!-- พื้นที่กล่องข้อมูล (แถบด้านขวาบนหน้าจอเดสก์ท็อป) -->
+    <div class="col-12 col-lg-4 order-1 order-lg-2">
+      <div class="wiki-infobox border border-secondary border-opacity-50 p-2 bg-light shadow-sm"
+        style="font-size: 13px;">
+        <h4 class="wiki-infobox-header bg-secondary bg-opacity-25 text-dark text-center py-2 mb-2 fw-bold"
+          style="font-size: 14px; border: 1px solid rgba(0,0,0,0.1);">
+          {{ projectName }}
+        </h4>
+
+        <table class="table table-sm table-bordered wiki-infobox-table mb-0 bg-white">
+          <tbody>
+            <tr>
+              <th scope="row" class="text-secondary bg-light">Use Cases</th>
+              <td>{{ useCases.length }} entities</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-secondary bg-light">Classes</th>
+              <td>{{ classes.length }} entities</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-secondary bg-light">Activities</th>
+              <td>{{ activityDiagrams.length }} entities</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-secondary bg-light">Total Entities</th>
+              <td class="fw-bold text-primary">{{ useCases.length + classes.length + activityDiagrams.length }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
   </div>
+</div>
 
-  <!-- Quick Access Diagrams Cards -->
-  <div class="row g-4">
-    <!-- Use Case Diagram Quick Card -->
-    <div class="col-12 col-md-6">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 diagram-card">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="icon-square bg-primary-subtle text-primary rounded-3 p-2 d-flex">
-              <span class="material-symbols-outlined fs-4">description</span>
-            </div>
-            <div>
-              <h4 class="h5 fw-bold mb-0">Use Case Diagram</h4>
-              <span class="small text-secondary">Actor & System interaction models</span>
-            </div>
-          </div>
-        </div>
-        <p class="text-muted small mb-4">
-          จัดการและวิเคราะห์ Use Case รวมถึงความสัมพันธ์ระหว่าง Actor และระบบทั้งหมดของโปรเจกต์นี้
-        </p>
-        <button class="btn btn-outline-primary rounded-3 d-inline-flex align-items-center gap-2 mt-auto" (click)="goToSection('use-case')">
-          <span>View Use Case Diagram</span>
-          <span class="material-symbols-outlined fs-6">arrow_forward</span>
-        </button>
+<!-- กล่อง Modal แสดงรายละเอียด Entity -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="isEntityModalOpen" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-0">
+      <div class="modal-header bg-light border-bottom border-secondary border-opacity-25 py-2">
+        <h5 class="modal-title fw-bold fs-5 d-flex align-items-center gap-2"
+          style="font-family: 'Times New Roman', Times, serif;">
+          <span *ngIf="selectedEntityType === 'use-case'"
+            class="badge bg-success text-white wiki-badge rounded-1 fs-6">ID: {{ selectedEntity.id }}</span>
+          <span *ngIf="selectedEntityType === 'class'" class="badge bg-info text-white wiki-badge rounded-1 fs-6">ID: {{
+            selectedEntity.id }}</span>
+          <span *ngIf="selectedEntityType === 'activity'"
+            class="badge bg-warning text-dark wiki-badge rounded-1 fs-6">ID: {{ selectedEntity.activityId ||
+            selectedEntity.activity_id || selectedEntity.id }}</span>
+
+          <span *ngIf="selectedEntityType === 'use-case'" class="text-primary">{{ selectedEntity.caption ||
+            selectedEntity.use_case_name || selectedEntity.name || 'Unnamed Use Case' }}</span>
+          <span *ngIf="selectedEntityType === 'class'" class="text-primary">{{ selectedEntity.class_name ||
+            selectedEntity.name || selectedEntity.caption || 'Unnamed Class' }}</span>
+          <span *ngIf="selectedEntityType === 'activity'" class="text-primary">{{ selectedEntity.activityName ||
+            selectedEntity.activity_name || selectedEntity.name || selectedEntity.caption || 'Unnamed Activity'
+            }}</span>
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEntityModal()" aria-label="Close"></button>
       </div>
-    </div>
-
-    <!-- Class Diagram Quick Card -->
-    <div class="col-12 col-md-6">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 diagram-card">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="icon-square bg-info-subtle text-info rounded-3 p-2 d-flex">
-              <span class="material-symbols-outlined fs-4">schema</span>
-            </div>
-            <div>
-              <h4 class="h5 fw-bold mb-0">Class Diagram</h4>
-              <span class="small text-secondary">Object-oriented structural models</span>
-            </div>
+      <div class="modal-body font-inter" style="font-size: 14px;">
+        <!-- รูปภาพ Activity Diagram -->
+        <div class="mb-4 text-center" *ngIf="selectedEntityType === 'activity'">
+          <div class="bg-white p-3 rounded-3 border border-secondary border-opacity-25 d-inline-block"
+            style="width: 75%;">
+            <h6 class="fw-bold text-start text-dark mb-3 border-bottom border-secondary border-opacity-25 pb-1">Diagram
+              Image</h6>
+            <img
+              [src]="selectedEntity.imagePath ? getImageUrl(selectedEntity.imagePath) : 'assets/images/ex-diagram.png'"
+              alt="Activity Diagram" class="img-fluid rounded border shadow-sm"
+              style="max-height: 300px; object-fit: contain; width: 100%;"
+              onError="this.src='http://localhost:3000/diagram_pic/ex-diagram.png'" />
+            <div class="small text-secondary mt-2">{{ selectedEntity.fileName || 'ex-diagram.png' }}</div>
           </div>
         </div>
-        <p class="text-muted small mb-4">
-          จัดการสถาปัตยกรรมคลาส, Attributes, Methods, Extend และ Interface เพื่อวางโครงสร้างเชิงวัตถุ
-        </p>
-        <button class="btn btn-outline-primary rounded-3 d-inline-flex align-items-center gap-2 mt-auto" (click)="goToSection('class')">
-          <span>View Class Diagram</span>
-          <span class="material-symbols-outlined fs-6">arrow_forward</span>
-        </button>
+
+        <!-- คำอธิบาย (Description) -->
+        <div class="mb-4">
+          <h6 class="fw-bold border-bottom border-secondary border-opacity-25 pb-1 text-dark">Description</h6>
+          <p class="text-secondary mb-0">{{ selectedEntity.description || 'No description available.' }}</p>
+        </div>
+
+        <!-- รายละเอียด Class -->
+        <ng-container *ngIf="selectedEntityType === 'class'">
+          <div class="mb-4" *ngIf="selectedEntity.attributes?.length > 0">
+            <h6 class="fw-bold border-bottom border-secondary border-opacity-25 pb-1 text-dark">Attributes</h6>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Encapsulation</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let attr of selectedEntity.attributes">
+                  <td class="fw-medium">{{ attr.name }}</td>
+                  <td class="text-primary">{{ attr.dataType || attr.data_type }}</td>
+                  <td>{{ attr.encapsulation }}</td>
+                  <td class="text-secondary">{{ attr.description || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mb-4" *ngIf="selectedEntity.methods?.length > 0">
+            <h6 class="fw-bold border-bottom border-secondary border-opacity-25 pb-1 text-dark">Methods</h6>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th>Name</th>
+                  <th>Return Type</th>
+                  <th>Encapsulation</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let meth of selectedEntity.methods">
+                  <td class="fw-medium">{{ meth.name }}()</td>
+                  <td class="text-primary">{{ meth.returnDataType || meth.return_data_type }}</td>
+                  <td>{{ meth.encapsulation }}</td>
+                  <td class="text-secondary">{{ meth.description || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+
+        <!-- รายละเอียด Activity -->
+        <ng-container *ngIf="selectedEntityType === 'activity'">
+          <div class="mb-4" *ngIf="selectedEntity.actions?.length > 0">
+            <h6 class="fw-bold border-bottom border-secondary border-opacity-25 pb-1 text-dark">Actions</h6>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th>No.</th>
+                  <th>Caption</th>
+                  <th>Lane</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let act of selectedEntity.actions">
+                  <td>{{ act.actionNo || act.action_no }}</td>
+                  <td class="fw-medium">{{ act.caption }}</td>
+                  <td class="text-secondary">{{ act.laneNo || act.lane_no || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mb-4" *ngIf="selectedEntity.decisionNodes?.length > 0">
+            <h6 class="fw-bold border-bottom border-secondary border-opacity-25 pb-1 text-dark">Decision Nodes</h6>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th>No.</th>
+                  <th>Caption</th>
+                  <th>Lane</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dn of selectedEntity.decisionNodes">
+                  <td>{{ dn.decisionNo || dn.decision_no }}</td>
+                  <td class="fw-medium text-warning text-darken">{{ dn.caption }}</td>
+                  <td class="text-secondary">{{ dn.laneNo || dn.lane_no || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+
       </div>
     </div>
   </div>

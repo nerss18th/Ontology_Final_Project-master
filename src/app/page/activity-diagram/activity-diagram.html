@@ -1,0 +1,578 @@
+<section class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-3 p-md-4 p-xl-5">
+    <!-- ส่วนหัวเรื่อง -->
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="h4 fw-bold mb-0">Activity Diagram</h2>
+      </div>
+      <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+        [routerLink]="['/dashboard/project', projectId, 'edit']" [queryParams]="{ diagram: 'activity' }">
+        <span class="material-symbols-outlined">edit</span>
+        Edit
+      </a>
+    </div>
+
+
+    <!-- ส่วนหัวสรุป Activity -->
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+      <div class="d-flex align-items-center gap-3">
+        <h3 class="h5 fw-bold mb-0">Activity Summary</h3>
+        <span class="badge text-bg-light border">{{ activityDiagrams.length }} Activity Diagrams</span>
+      </div>
+      <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
+        (click)="openAddModal()">
+        <span class="material-symbols-outlined">add</span>
+        Add Activity Diagram
+      </button>
+    </div>
+
+    <!-- ตารางสรุป Activity -->
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Activity ID</th>
+            <th scope="col">Activity Name</th>
+            <th scope="col">Reference (Use Case)</th>
+            <th scope="col">Swimlane</th>
+            <th scope="col">Preliminary Activity</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of activityDiagrams">
+            <th scope="row">{{ item.activityId }}</th>
+            <td class="fw-semibold text-dark">{{ item.activityName }}</td>
+            <td>
+              <span class="badge text-bg-light border text-secondary">{{ item.useCaseRef || 'None' }}</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="item.hasSwimlane === 'Yes' ? 'text-bg-success' : 'text-bg-secondary'">
+                {{ item.hasSwimlane }}
+              </span>
+            </td>
+            <td>
+              <span class="badge text-bg-light border text-dark">{{ item.preliminaryActivityId || '-' }}</span>
+            </td>
+            <td>
+              <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-light icon-button" type="button" title="View Detail"
+                  (click)="openViewModal(item)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button class="btn btn-sm btn-light icon-button" type="button" title="Edit"
+                  (click)="openEditModal(item)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="btn btn-sm btn-light icon-button delete-button" type="button"
+                  [attr.aria-label]="'Delete ' + item.activityName" title="Delete" (click)="deleteActivityItem(item.id, item.activityId)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="activityDiagrams.length === 0">
+            <td class="text-center text-body-secondary py-4" colspan="6">No activity diagrams yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ป๊อปอัปสำหรับเพิ่ม / แก้ไข Activity Diagram -->
+<div *ngIf="isAddModalOpen" class="modal-backdrop fade show" (click)="closeAddModal()"></div>
+<div *ngIf="isAddModalOpen && selectedDiagramForEdit" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="addActivityModalTitle">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="max-height: 90vh;">
+      <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h5 class="modal-title fw-bold mb-0 d-flex align-items-center gap-2" id="addActivityModalTitle">
+          <span class="material-symbols-outlined text-primary">add_circle</span>
+          {{ isEditMode ? 'Edit Activity Diagram' : 'Add New Activity Diagram Element' }}
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeAddModal()"></button>
+      </div>
+
+      <form (ngSubmit)="saveActivityItem()" class="d-flex flex-column overflow-hidden flex-grow-1">
+        <div class="modal-body p-4 overflow-auto">
+
+          <!-- ส่วนอัปโหลดรูปภาพในป๊อปอัป -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
+              <span>รูปภาพ Activity Diagram (แยกกันในแต่ละ Diagram)</span>
+              <div>
+                <input #fileInput type="file" accept="image/*" class="d-none" (change)="onFileSelected($event)" />
+                <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="triggerFileInput()">
+                  <span class="material-symbols-outlined fs-6 align-middle me-1">upload_file</span>
+                  {{ selectedDiagramForEdit.imagePath ? 'เปลี่ยนรูปภาพ' : 'อัปโหลดรูปภาพ' }}
+                </button>
+                <button *ngIf="selectedDiagramForEdit.imagePath" type="button" class="btn btn-sm btn-outline-danger" (click)="removeImage()">
+                  ลบรูป
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-3 text-center bg-light">
+              <div *ngIf="selectedDiagramForEdit.imagePath; else noModalImg">
+                <img [src]="getImageUrl(selectedDiagramForEdit.imagePath)" alt="Activity Diagram" class="img-fluid rounded border shadow-sm" style="max-height: 250px;" />
+                <div class="small text-secondary mt-1">{{ selectedDiagramForEdit.fileName }}</div>
+              </div>
+              <ng-template #noModalImg>
+                <div class="py-3 text-secondary small">
+                  ยังไม่ได้แนบรูปภาพเฉพาะสำหรับ Activity Diagram นี้
+                </div>
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- 1. ส่วนของการอธิบาย diagram -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2">
+              1. ส่วนของการอธิบาย diagram
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Reference (from Use Case diagram)</label>
+                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.useCaseRef" name="useCaseRef">
+                    <option value="">-- เลือก Use Case --</option>
+                    <option *ngFor="let uc of useCaseOptions" [value]="uc">{{ uc }}</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Activity ID (Auto)</label>
+                  <input type="text" class="form-control bg-body-tertiary" [(ngModel)]="selectedDiagramForEdit.activityId" name="activityId" readonly />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Activity Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" placeholder="กรอกชื่อ Activity Name" [(ngModel)]="selectedDiagramForEdit.activityName" name="activityName" required />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Preliminary activity (Activity ID)</label>
+                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.preliminaryActivityId" name="preliminaryActivityId">
+                    <option value="">-- เลือก Preliminary Activity --</option>
+                    <option *ngFor="let actId of preliminaryActivityOptions" [value]="actId">{{ actId }}</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold small">Description</label>
+                  <textarea class="form-control" rows="2" placeholder="กรอกคำอธิบายเพิ่มเติม..." [(ngModel)]="selectedDiagramForEdit.description" name="description"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. ส่วนของ Swimlane -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
+              <span>2. ส่วนของ Swimlane</span>
+              <button *ngIf="selectedDiagramForEdit.hasSwimlane === 'Yes'" type="button" class="btn btn-sm btn-outline-primary" (click)="addSwimlane()">
+                + เพิ่ม Lane
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3 mb-3">
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">Swimlane</label>
+                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.hasSwimlane" name="hasSwimlane">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div *ngIf="selectedDiagramForEdit.hasSwimlane === 'Yes'" class="table-responsive rounded-3 border">
+                <table class="table table-sm table-hover align-middle mb-0 bg-white">
+                  <thead class="table-light small">
+                    <tr>
+                      <th style="width: 150px;">Lane No.</th>
+                      <th style="width: 200px;">Type</th>
+                      <th>Caption</th>
+                      <th>Reference ID</th>
+                      <th style="width: 60px;" class="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let lane of selectedDiagramForEdit.swimlanes; let i = index">
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="lane.laneNo" [name]="'laneNo_' + i" placeholder="L-01" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="lane.type" [name]="'laneType_' + i" placeholder="Actor/System" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="lane.caption" [name]="'laneCaption_' + i" placeholder="Caption" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="lane.referenceId" [name]="'laneRef_' + i" placeholder="Ref ID" />
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteSwimlane(i)">
+                          <span class="material-symbols-outlined fs-6">delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="selectedDiagramForEdit.swimlanes.length === 0">
+                      <td colspan="5" class="text-center text-muted small py-2">ยังไม่มี Swimlane</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. ส่วนของ Start Point -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2">
+              3. ส่วนของ Start Point
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">From Lane No.</label>
+                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.startPoint.fromLaneNo" name="startFromLane" [disabled]="selectedDiagramForEdit.hasSwimlane === 'No'">
+                    <option value="">-- เลือก Lane No. --</option>
+                    <option *ngFor="let lNo of swimlaneNoOptions" [value]="lNo">{{ lNo }}</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">To Action</label>
+                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.startPoint.toAction" name="startToAction">
+                    <option value="">-- เลือก To Action --</option>
+                    <option *ngFor="let actNo of actionNoOptions" [value]="actNo">{{ actNo }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. ส่วนของ End Point -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
+              <span>4. ส่วนของ End Point</span>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addEndPoint()">
+                + เพิ่ม End Point
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div class="table-responsive rounded-3 border">
+                <table class="table table-sm table-hover align-middle mb-0 bg-white">
+                  <thead class="table-light small">
+                    <tr>
+                      <th style="width: 180px;">Lane No.</th>
+                      <th style="width: 150px;">From (Type)</th>
+                      <th style="width: 180px;">From (No.)</th>
+                      <th>End State</th>
+                      <th style="width: 60px;" class="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let ep of selectedDiagramForEdit.endPoints; let i = index">
+                      <td>
+                        <select class="form-select form-select-sm" [(ngModel)]="ep.laneNo" [name]="'epLane_' + i" [disabled]="selectedDiagramForEdit.hasSwimlane === 'No'">
+                          <option value="">-- เลือก Lane --</option>
+                          <option *ngFor="let lNo of swimlaneNoOptions" [value]="lNo">{{ lNo }}</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="ep.fromType" [name]="'epType_' + i" placeholder="Action" />
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm" [(ngModel)]="ep.fromNo" [name]="'epFromNo_' + i">
+                          <option value="">-- เลือก Action --</option>
+                          <option *ngFor="let actNo of actionNoOptions" [value]="actNo">{{ actNo }}</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm" [(ngModel)]="ep.endState" [name]="'epState_' + i">
+                          <option value="Success">Success</option>
+                          <option value="Unsuccess">Unsuccess</option>
+                        </select>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteEndPoint(i)">
+                          <span class="material-symbols-outlined fs-6">delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="selectedDiagramForEdit.endPoints.length === 0">
+                      <td colspan="5" class="text-center text-muted small py-2">ยังไม่มี End Point</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. ส่วนของ Action -->
+          <div class="card border mb-4 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
+              <span>5. ส่วนของ Action</span>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addAction()">
+                + เพิ่ม Action
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div class="table-responsive rounded-3 border">
+                <table class="table table-sm table-hover align-middle mb-0 bg-white">
+                  <thead class="table-light small">
+                    <tr>
+                      <th style="width: 140px;">Action No. (ระบบ)</th>
+                      <th style="width: 180px;">Lane No.</th>
+                      <th>Caption</th>
+                      <th>Description</th>
+                      <th style="width: 60px;" class="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let act of selectedDiagramForEdit.actions; let i = index">
+                      <td>
+                        <input type="text" class="form-control form-control-sm bg-body-tertiary" [(ngModel)]="act.actionNo" [name]="'actNo_' + i" readonly />
+                      </td>
+                      <td>
+                        <select class="form-select form-select-sm" [(ngModel)]="act.laneNo" [name]="'actLane_' + i" [disabled]="selectedDiagramForEdit.hasSwimlane === 'No'">
+                          <option value="">-- เลือก Lane --</option>
+                          <option *ngFor="let lNo of swimlaneNoOptions" [value]="lNo">{{ lNo }}</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="act.caption" [name]="'actCaption_' + i" placeholder="Caption" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="act.description" [name]="'actDesc_' + i" placeholder="Description" />
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteAction(i)">
+                          <span class="material-symbols-outlined fs-6">delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="selectedDiagramForEdit.actions.length === 0">
+                      <td colspan="5" class="text-center text-muted small py-2">ยังไม่มี Action</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. ส่วนของ Decision Node -->
+          <div class="card border mb-3 rounded-3 shadow-sm">
+            <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
+              <span>6. ส่วนของ Decision Node</span>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addDecisionNode()">
+                + เพิ่ม Decision Node
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div *ngFor="let dn of selectedDiagramForEdit.decisionNodes; let dnIdx = index" class="border rounded p-3 mb-3 bg-light shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                  <span class="fw-bold text-primary">Decision Node #{{ dn.decisionNo }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteDecisionNode(dnIdx)">
+                    <span class="material-symbols-outlined fs-6">delete</span>
+                  </button>
+                </div>
+
+                <div class="row g-2 mb-3">
+                  <div class="col-12 col-md-3">
+                    <label class="form-label small text-secondary mb-1">Decision No. (ระบบ)</label>
+                    <input type="text" class="form-control form-control-sm bg-body-tertiary" [(ngModel)]="dn.decisionNo" [name]="'dnNo_' + dnIdx" readonly />
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label small text-secondary mb-1">Lane No.</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="dn.laneNo" [name]="'dnLane_' + dnIdx" [disabled]="selectedDiagramForEdit.hasSwimlane === 'No'">
+                      <option value="">-- เลือก Lane --</option>
+                      <option *ngFor="let lNo of swimlaneNoOptions" [value]="lNo">{{ lNo }}</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label small text-secondary mb-1">From Action No.</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="dn.fromActionNo" [name]="'dnFromAct_' + dnIdx">
+                      <option value="">-- เลือก Action --</option>
+                      <option *ngFor="let actNo of actionNoOptions" [value]="actNo">{{ actNo }}</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label small text-secondary mb-1">Caption</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="dn.caption" [name]="'dnCaption_' + dnIdx" placeholder="Caption" />
+                  </div>
+                </div>
+
+                <!-- ตารางเกณฑ์ (Criteria) -->
+                <div class="table-responsive rounded-3 border bg-white p-2">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-semibold small text-secondary">ตาราง Criteria</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" (click)="addCriteria(dn)">
+                      + เพิ่ม Criteria
+                    </button>
+                  </div>
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light small">
+                      <tr>
+                        <th style="width: 140px;">Criteria No.</th>
+                        <th>Detail</th>
+                        <th style="width: 200px;">Reference Id (Action)</th>
+                        <th style="width: 50px;" class="text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let cr of dn.criteria; let cIdx = index">
+                        <td>
+                          <input type="text" class="form-control form-control-sm bg-body-tertiary" [(ngModel)]="cr.criteriaNo" [name]="'crNo_' + dnIdx + '_' + cIdx" readonly />
+                        </td>
+                        <td>
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="cr.detail" [name]="'crDetail_' + dnIdx + '_' + cIdx" placeholder="Detail" />
+                        </td>
+                        <td>
+                          <select class="form-select form-select-sm" [(ngModel)]="cr.referenceId" [name]="'crRef_' + dnIdx + '_' + cIdx">
+                            <option value="">-- เลือก Action --</option>
+                            <option *ngFor="let actNo of actionNoOptions" [value]="actNo">{{ actNo }}</option>
+                          </select>
+                        </td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteCriteria(dn, cIdx)">
+                            <span class="material-symbols-outlined fs-6">close</span>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3" (click)="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2" [disabled]="!selectedDiagramForEdit.activityName.trim() || isSaving">
+            <span class="material-symbols-outlined fs-6">check</span>
+            {{ isSaving ? 'Saving...' : 'Save Activity Diagram' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ป๊อปอัปสำหรับดูรายละเอียด Activity -->
+<div *ngIf="isViewModalOpen" class="modal-backdrop fade show" (click)="closeViewModal()"></div>
+<div *ngIf="isViewModalOpen && selectedDiagramForView" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="viewActivityModalTitle">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge text-bg-primary fs-6">{{ selectedDiagramForView.activityId }}</span>
+          <h5 class="modal-title fw-bold mb-0" id="viewActivityModalTitle">{{ selectedDiagramForView.activityName }}</h5>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeViewModal()"></button>
+      </div>
+
+      <div class="modal-body p-4 overflow-auto">
+        <!-- แสดงรูปภาพ Diagram -->
+        <div class="mb-4 text-center bg-light p-3 rounded-3 border">
+          <h6 class="fw-bold text-start text-dark mb-3 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary">image</span>
+            รูปภาพ Activity Diagram ({{ selectedDiagramForView.activityId }})
+          </h6>
+          <img [src]="getImageUrl(selectedDiagramForView.imagePath) || activityDiagramImage" alt="Activity Diagram" class="img-fluid rounded border shadow-sm" style="max-height: 400px;" />
+          <div class="small text-secondary mt-2">{{ selectedDiagramForView.fileName || 'ex-diagram.png' }}</div>
+        </div>
+
+        <!-- รายละเอียดภาพรวม -->
+        <div class="mb-4">
+          <div class="text-muted small">Description:</div>
+          <div class="fw-medium mb-2">{{ selectedDiagramForView.description || 'No description provided.' }}</div>
+          <div class="row g-2 small text-secondary">
+            <div class="col-6">Reference Use Case: <strong class="text-dark">{{ selectedDiagramForView.useCaseRef || 'None' }}</strong></div>
+            <div class="col-6">Preliminary Activity: <strong class="text-dark">{{ selectedDiagramForView.preliminaryActivityId || '-' }}</strong></div>
+            <div class="col-6">Has Swimlane: <strong class="text-dark">{{ selectedDiagramForView.hasSwimlane }}</strong></div>
+          </div>
+        </div>
+
+        <!-- ตาราง Swimlanes -->
+        <div class="mb-4" *ngIf="selectedDiagramForView.hasSwimlane === 'Yes'">
+          <h6 class="fw-bold text-primary">Swimlanes ({{ selectedDiagramForView.swimlanes.length }})</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Lane No.</th>
+                  <th>Type</th>
+                  <th>Caption</th>
+                  <th>Ref ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let lane of selectedDiagramForView.swimlanes">
+                  <td class="fw-semibold"><code>{{ lane.laneNo }}</code></td>
+                  <td>{{ lane.type }}</td>
+                  <td>{{ lane.caption }}</td>
+                  <td>{{ lane.referenceId || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ตาราง Actions -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">Actions ({{ selectedDiagramForView.actions.length }})</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Action No.</th>
+                  <th>Lane No.</th>
+                  <th>Caption</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let act of selectedDiagramForView.actions">
+                  <td class="fw-semibold"><code>{{ act.actionNo }}</code></td>
+                  <td>{{ act.laneNo || '-' }}</td>
+                  <td class="fw-semibold">{{ act.caption }}</td>
+                  <td class="small">{{ act.description || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ส่วน Decision Nodes -->
+        <div class="mb-4" *ngIf="selectedDiagramForView.decisionNodes.length > 0">
+          <h6 class="fw-bold text-primary">Decision Nodes ({{ selectedDiagramForView.decisionNodes.length }})</h6>
+          <div *ngFor="let dn of selectedDiagramForView.decisionNodes" class="border rounded p-3 mb-2 bg-light">
+            <div class="fw-bold text-dark mb-1">{{ dn.decisionNo }}: {{ dn.caption }}</div>
+            <div class="small text-secondary mb-2">From Action: {{ dn.fromActionNo || '-' }} | Lane: {{ dn.laneNo || '-' }}</div>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered bg-white mb-0">
+                <thead class="table-light small">
+                  <tr>
+                    <th>Criteria No.</th>
+                    <th>Detail</th>
+                    <th>Ref Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let cr of dn.criteria">
+                    <td><code>{{ cr.criteriaNo }}</code></td>
+                    <td>{{ cr.detail }}</td>
+                    <td>{{ cr.referenceId || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-body-tertiary px-4 py-2 border-top">
+        <button type="button" class="btn btn-secondary px-4 rounded-3" (click)="closeViewModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

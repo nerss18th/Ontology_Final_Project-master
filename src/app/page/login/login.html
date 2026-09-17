@@ -1,10 +1,10 @@
 <main class="d-flex flex-column align-items-center justify-content-center w-100 auth-main-bg p-4">
   <div class="auth-card card p-4 p-md-5 border-0 position-relative overflow-hidden w-100 mx-auto">
-    <!-- Decorative background accent -->
+    <!-- พื้นหลังตกแต่ง -->
     <div class="deco-accent"></div>
 
     <div class="card-body position-relative z-1 p-0 d-flex flex-column gap-4">
-      <!-- Icon & Header -->
+      <!-- ไอคอนและส่วนหัว -->
       <div class="text-center d-flex flex-column align-items-center gap-2">
         <span
           class="material-symbols-outlined text-primary mb-2"
@@ -14,7 +14,7 @@
         <h1 class="h3 fw-bold text-dark mb-0" style="letter-spacing: -0.02em">Log In</h1>
       </div>
 
-      <!-- Error Message -->
+      <!-- ข้อความแสดงข้อผิดพลาด -->
       <div
         *ngIf="errorMessage"
         class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 m-0 rounded-3"
@@ -25,9 +25,9 @@
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Form (ผูกกับ Angular Reactive Form) -->
+      <!-- ฟอร์ม (ผูกกับ Angular Reactive Form) -->
       <form class="d-flex flex-column gap-3 mt-2" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <!-- Email Input (Bootstrap Floating Label) -->
+        <!-- ช่องกรอก Email -->
         <div>
           <div class="form-floating">
             <input
@@ -52,7 +52,7 @@
           </div>
         </div>
 
-        <!-- Password Input (Bootstrap Floating Label) -->
+        <!-- ช่องกรอก Password -->
         <div>
           <div class="form-floating">
             <input
@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- ปุ่มยืนยัน -->
         <div class="pt-2">
           <button
             type="submit"
@@ -91,7 +91,7 @@
         </div>
       </form>
 
-      <!-- Mock Data Quick Fill Panel -->
+      <!-- แผงปุ่มสำหรับกรอกข้อมูลจำลอง -->
       <div class="p-3 bg-light rounded-3 border" style="margin-top: 0.5rem">
         <div
           class="fw-semibold text-secondary mb-2 d-flex align-items-center gap-1"
@@ -126,7 +126,7 @@
         </div>
       </div>
 
-      <!-- Footer Link -->
+      <!-- ลิงก์ส่วนท้าย -->
       <div class="text-center mt-2">
         <p class="small text-secondary mb-0">
           Don't have an account?

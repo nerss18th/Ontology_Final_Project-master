@@ -1,14 +1,11 @@
 <div class="project-shell min-vh-100 bg-body-tertiary pt-5 mt-2">
   <div class="d-flex flex-column flex-lg-row min-vh-100">
-    <!-- Left Sidebar Component -->
-    <app-project-sidebar
-      [projectName]="projectName"
-      [activeSection]="activeSection"
-      (sectionChange)="setActiveSection($event)"
-      (editProjectClick)="openEditProjectModal()">
+    <!-- ส่วนประกอบ Sidebar ด้านซ้าย -->
+    <app-project-sidebar [projectName]="projectName" [activeSection]="activeSection"
+      (sectionChange)="setActiveSection($event)" (editProjectClick)="openEditProjectModal()">
     </app-project-sidebar>
 
-    <!-- Right Main Content Area -->
+    <!-- พื้นที่แสดงเนื้อหาหลักด้านขวา -->
     <main class="flex-grow-1 content-area min-w-0">
       <div class="container-fluid content-container py-3 py-lg-4 px-3 px-md-4 px-xl-5">
         <nav class="breadcrumb small mb-3" aria-label="breadcrumb">
@@ -18,25 +15,45 @@
           <li class="breadcrumb-item active" aria-current="page">{{ activeDiagramTitle }}</li>
         </nav>
 
-        <!-- Overview Component -->
-        <app-overview *ngIf="activeSection === 'overview'"
-          [projectName]="projectName"
-          [projectDetail]="projectDetail"
+        <!-- ส่วนประกอบภาพรวม (Overview) -->
+        <app-overview *ngIf="activeSection === 'overview'" [projectId]="projectId.toString()" [projectName]="projectName" [projectDetail]="projectDetail"
           (navigateSection)="setActiveSection($event)">
         </app-overview>
 
-        <!-- Use Case Diagram Component -->
-        <app-use-case-diagram *ngIf="activeSection === 'use-case'"></app-use-case-diagram>
+        <!-- ส่วนของการส่งออกเอกสาร (Export) -->
+        <div *ngIf="activeSection === 'export'" class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mt-3 text-center">
+          <div class="mb-4">
+            <span class="material-symbols-outlined text-primary" style="font-size: 64px;">file_download</span>
+          </div>
+          <h2 class="h3 fw-bold mb-3">Export Document</h2>
+          <p class="text-secondary mb-4 mx-auto" style="max-width: 500px;">
+            Select the diagram you want to export to a Word document.
+          </p>
+          <div class="d-flex justify-content-center gap-3">
+            <button class="btn btn-outline-primary px-4 fw-semibold rounded-3" (click)="exportUseCaseDoc()">Export Use
+              Case to Word</button>
+            <button class="btn btn-outline-primary px-4 fw-semibold rounded-3" (click)="exportClassDoc()">Export Class
+              to Word</button>
+            <button class="btn btn-outline-primary px-4 fw-semibold rounded-3" (click)="exportActivityDoc()">Export
+              Activity to Word</button>
+          </div>
+        </div>
 
-        <!-- Class Diagram Component -->
-        <app-class-diagram *ngIf="activeSection === 'class'"></app-class-diagram>
+        <!-- ส่วนประกอบ Use Case Diagram -->
+        <app-use-case-diagram *ngIf="activeSection === 'use-case'" [projectId]="projectId"></app-use-case-diagram>
+
+        <!-- ส่วนประกอบ Class Diagram -->
+        <app-class-diagram *ngIf="activeSection === 'class'" [projectId]="projectId"></app-class-diagram>
+
+        <!-- ส่วนประกอบ Activity Diagram -->
+        <app-activity-diagram *ngIf="activeSection === 'activity'" [projectId]="projectId"></app-activity-diagram>
 
       </div>
     </main>
   </div>
 </div>
 
-<!-- Edit Project Details Pop-up -->
+<!-- ป๊อปอัปแก้ไขรายละเอียดโปรเจกต์ -->
 <div *ngIf="isEditProjectModalOpen" class="modal-backdrop fade show" (click)="closeEditProjectModal()"></div>
 <div *ngIf="isEditProjectModalOpen" class="modal d-block" tabindex="-1" role="dialog"
   aria-labelledby="editProjectModalTitle">
@@ -52,7 +69,7 @@
       </div>
       <form (ngSubmit)="saveProjectDetails()">
         <div class="modal-body p-4">
-          <!-- Project Information -->
+          <!-- ข้อมูลโปรเจกต์ -->
           <div class="mb-3">
             <label for="editProjectNameInput" class="form-label fw-semibold small">Project Name <span
                 class="text-danger">*</span></label>
@@ -65,7 +82,7 @@
               name="editProjectDetail"></textarea>
           </div>
 
-          <!-- Team Members Section (For Pro Package) -->
+          <!-- ส่วนของการจัดการสมาชิกในทีม (สำหรับแพ็กเกจ Pro) -->
           <hr class="my-4" />
 
           <div *ngIf="isProUser">
@@ -80,7 +97,7 @@
               </div>
             </div>
 
-            <!-- Add Member Input Form -->
+            <!-- ฟอร์มสำหรับเชิญสมาชิกใหม่ -->
             <div class="card bg-body-tertiary border-0 p-3 mb-3 rounded-3">
               <label class="form-label fw-semibold small mb-2">Invite New Member to Project</label>
               <div class="row g-2">
@@ -106,7 +123,7 @@
               </div>
             </div>
 
-            <!-- Member List -->
+            <!-- รายชื่อสมาชิก -->
             <div class="list-group list-group-flush rounded-3 border">
               <div *ngFor="let member of teamMembers"
                 class="list-group-item d-flex align-items-center justify-content-between p-3">
@@ -131,7 +148,7 @@
                   </span>
                   <button *ngIf="member.role !== 'Owner'" type="button"
                     class="btn btn-sm btn-light text-danger icon-button p-1 border-0 d-flex align-items-center justify-content-center rounded-circle"
-                    title="Remove member" (click)="removeTeamMember(member.email)">
+                    (click)="removeTeamMember(member)">
                     <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
                   </button>
                 </div>
@@ -139,7 +156,7 @@
             </div>
           </div>
 
-          <!-- Non-Pro User Locked Notice -->
+          <!-- แจ้งเตือนการล็อกฟีเจอร์ (สำหรับผู้ใช้ที่ไม่ใช่ Pro) -->
           <div *ngIf="!isProUser" class="card border-0 bg-primary-subtle p-3 rounded-3">
             <div class="d-flex align-items-start gap-3">
               <span class="material-symbols-outlined text-primary fs-4 mt-1">workspace_premium</span>

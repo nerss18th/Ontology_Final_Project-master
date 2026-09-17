@@ -10,7 +10,7 @@
     <div class="container-fluid content-container py-3 py-lg-4 px-3 px-md-4 px-xl-5">
       <nav class="breadcrumb small mb-3" aria-label="breadcrumb">
         <li class="breadcrumb-item"><a routerLink="/dashboard" class="text-decoration-none">ONTOLOGY</a></li>
-        <li class="breadcrumb-item"><a [routerLink]="['/dashboard/project/1']" [queryParams]="{ section: 'overview' }" class="text-decoration-none">{{ projectName }}</a></li>
+        <li class="breadcrumb-item"><a [routerLink]="['/dashboard/project', projectId]" [queryParams]="{ section: 'overview' }" class="text-decoration-none">{{ projectName }}</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ diagramType === 'class' ? 'Class Diagram' : 'Use Case Diagram' }}</li>
       </nav>
 

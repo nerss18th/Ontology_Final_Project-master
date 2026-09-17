@@ -35,18 +35,31 @@ export class DiagramEditor implements OnInit {
   public newMemberEmail = '';
   public newMemberRole = 'Editor';
 
+  public projectId: string = '1';
+
   constructor(
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.projectId = params['id'];
+      }
+    });
+
     this.route.queryParams.subscribe((params) => {
       if (params['diagram'] === 'class') {
         this.diagramType = 'class';
         this.diagramTitle = 'Edit Class Diagram';
         this.fileName = localStorage.getItem('class_diagram_filename') || 'ex-class-diagram.png';
         this.previewUrl = localStorage.getItem('class_diagram_image') || 'ex-class-diagram.png';
+      } else if (params['diagram'] === 'activity') {
+        this.diagramType = 'activity';
+        this.diagramTitle = 'Edit Activity Diagram';
+        this.fileName = localStorage.getItem('activity_diagram_filename') || 'ex-activity-diagram.png';
+        this.previewUrl = localStorage.getItem('activity_diagram_image') || 'ex-activity-diagram.png';
       } else {
         this.diagramType = 'use-case';
         this.diagramTitle = 'Edit Use Case Diagram';
@@ -121,11 +134,11 @@ export class DiagramEditor implements OnInit {
         localStorage.setItem('use_case_diagram_filename', this.fileName);
       }
     }
-    this.router.navigate(['/dashboard/project/1'], { queryParams: { section: this.diagramType } });
+    this.router.navigate(['/dashboard/project', this.projectId], { queryParams: { section: this.diagramType } });
   }
 
   cancel(): void {
-    this.router.navigate(['/dashboard/project/1'], { queryParams: { section: this.diagramType } });
+    this.router.navigate(['/dashboard/project', this.projectId], { queryParams: { section: this.diagramType } });
   }
 
   openFullScreen(): void {

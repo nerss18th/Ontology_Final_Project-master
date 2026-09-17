@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
+import { BackendApiService } from './backend-api.service';
 
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user?: { email: string; name?: string; phone?: string; plan?: string | null };
+  user?: { id?: number; email: string; name?: string; username?: string; phone?: string; plan?: string | null; pic?: string | null; description?: string | null };
   token?: string;
 }
 
@@ -13,238 +14,212 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly USERS_KEY = 'mock_users';
   private readonly CURRENT_USER_KEY = 'mock_current_user';
-
-  /* ข้อมูลทดสอบ */
-  private readonly DEFAULT_ACCOUNTS = [
-    {
-      email: 'standard@gmail.com',
-      password: 'admin034161',
-      name: 'Standard User',
-      phone: '081-234-5678',
-      plan: 'Standard',
-    },
-    {
-      email: 'pro@gmail.com',
-      password: 'admin034161',
-      name: 'Pro User',
-      phone: '089-876-5432',
-      plan: 'Pro',
-    },
-  ];
+  private readonly TOKEN_KEY = 'auth_token';
 
   private currentUserSubject = new BehaviorSubject<{
+    id?: number;
     email: string;
     name?: string;
+    username?: string;
     phone?: string;
     plan?: string | null;
+    pic?: string | null;
+    description?: string | null;
   } | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor() {
-    // Load current user session if exists
+  constructor(private apiService: BackendApiService) {
     const savedUser = localStorage.getItem(this.CURRENT_USER_KEY);
     if (savedUser) {
       try {
-        const parsed = JSON.parse(savedUser);
-        // Look up registered user to populate name/phone if missing
-        const users = this.getUsersFromStorage();
-        const dbUser = users.find((u) => u.email.toLowerCase() === parsed.email.toLowerCase());
-        if (dbUser) {
-          parsed.name = dbUser.name || parsed.name || parsed.email.split('@')[0];
-          parsed.phone = dbUser.phone || parsed.phone || '-';
-        } else {
-          parsed.name = parsed.name || parsed.email.split('@')[0];
-          parsed.phone = parsed.phone || '-';
-        }
-        this.currentUserSubject.next(parsed);
+        this.currentUserSubject.next(JSON.parse(savedUser));
       } catch (e) {
         localStorage.removeItem(this.CURRENT_USER_KEY);
       }
     }
-
-    // mock up users
-    const users = this.getUsersFromStorage();
-    let updated = false;
-    this.DEFAULT_ACCOUNTS.forEach((account) => {
-      const existing = users.find((u) => u.email.toLowerCase() === account.email.toLowerCase());
-      if (!existing) {
-        users.push(account);
-        updated = true;
-      } else {
-        let entryUpdated = false;
-        if (!existing.name) {
-          existing.name = account.name;
-          entryUpdated = true;
-        }
-        if (!existing.phone) {
-          existing.phone = account.phone;
-          entryUpdated = true;
-        }
-        if (entryUpdated) {
-          updated = true;
-        }
-      }
-    });
-
-    if (updated) {
-      this.saveUsersToStorage(users);
-    }
   }
 
   /**
-   * Helper to retrieve all registered users from localStorage
+   * สมัครสมาชิกใหม่
    */
-  private getUsersFromStorage(): any[] {
-    const data = localStorage.getItem(this.USERS_KEY);
-    if (!data) {
-      this.saveUsersToStorage(this.DEFAULT_ACCOUNTS);
-      return [...this.DEFAULT_ACCOUNTS];
-    }
-    try {
-      const users = JSON.parse(data);
-      if (!Array.isArray(users) || users.length === 0) {
-        this.saveUsersToStorage(this.DEFAULT_ACCOUNTS);
-        return [...this.DEFAULT_ACCOUNTS];
-      }
-      return users;
-    } catch (e) {
-      this.saveUsersToStorage(this.DEFAULT_ACCOUNTS);
-      return [...this.DEFAULT_ACCOUNTS];
-    }
+  signUp(email: string, password: string, name: string, username?: string): Observable<AuthResponse> {
+    return this.apiService.postSignUp({ email, password, name, username }).pipe(
+      map((res) => ({
+        success: res.success,
+        message: res.message || '',
+        user: res.user,
+        token: res.token
+      })),
+      tap((res) => {
+        if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem(this.TOKEN_KEY, res.token);
+          }
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
+          this.currentUserSubject.next(res.user);
+        }
+      }),
+      catchError((err) => {
+        const errorMsg = err.error?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อระบบ';
+        return of({ success: false, message: errorMsg });
+      })
+    );
   }
 
   /**
-   * Helper to write registered users back to localStorage
-   */
-  private saveUsersToStorage(users: any[]): void {
-    localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
-  }
-
-  /**
-   * Mock login endpoint
+   * เข้าสู่ระบบ
    */
   login(email: string, password: string): Observable<AuthResponse> {
-    const users = this.getUsersFromStorage();
-    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-      return of({
-        success: false,
-        message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
-      }).pipe(delay(100));
-    }
-
-    if (user.password !== password) {
-      return of({
-        success: false,
-        message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
-      }).pipe(delay(100));
-    }
-
-    const loggedInUser = {
-      email: user.email,
-      name: user.name || user.email.split('@')[0],
-      phone: user.phone || '-',
-      plan: user.plan || null,
-    };
-    return of({
-      success: true,
-      message: 'เข้าสู่ระบบสำเร็จ',
-      user: loggedInUser,
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
-    }).pipe(
-      delay(100),
+    return this.apiService.postLogin({ email, password }).pipe(
+      map((res) => ({
+        success: res.success,
+        message: res.message || '',
+        user: res.user,
+        token: res.token
+      })),
       tap((res) => {
         if (res.success && res.user) {
+          if (res.token) {
+            localStorage.setItem(this.TOKEN_KEY, res.token);
+          }
           localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
           this.currentUserSubject.next(res.user);
         }
       }),
+      catchError((err) => {
+        const errorMsg = err.error?.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+        return of({ success: false, message: errorMsg });
+      })
     );
   }
 
   /**
-   * Mock signup endpoint
-   */
-  signUp(email: string, password: string, name: string): Observable<AuthResponse> {
-    const users = this.getUsersFromStorage();
-    const emailExists = users.some((u) => u.email.toLowerCase() === email.toLowerCase());
-
-    if (emailExists) {
-      return of({
-        success: false,
-        message: 'อีเมลนี้ถูกใช้งานแล้วในระบบ',
-      }).pipe(delay(100));
-    }
-
-    const newUser = { email, password, name, phone: '-', plan: null };
-    users.push(newUser);
-    this.saveUsersToStorage(users);
-
-    const loggedInUser = { email, name, phone: '-', plan: null };
-    return of({
-      success: true,
-      message: 'สมัครสมาชิกสำเร็จ',
-      user: loggedInUser,
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
-    }).pipe(
-      delay(100),
-      tap((res) => {
-        if (res.success && res.user) {
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
-          this.currentUserSubject.next(res.user);
-        }
-      }),
-    );
-  }
-
-  /**
-   * Logout session
+   * ออกจากระบบ
    */
   logout(): void {
     localStorage.removeItem(this.CURRENT_USER_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
     this.currentUserSubject.next(null);
   }
 
   /**
-   * Check if user is authenticated
+   * ตรวจสอบว่าล็อกอินอยู่หรือไม่
    */
   isLoggedIn(): boolean {
     return this.currentUserSubject.value !== null;
   }
 
   /**
-   * Update the plan of the currently logged-in user
+   * ดึง Token ปัจจุบัน
+   */
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  /**
+   * อัปเดตแพ็กเกจ (Standard / Pro)
    */
   updateUserPlan(planId: string): Observable<boolean> {
     const currentUser = this.currentUserSubject.value;
-    if (!currentUser) {
-      return of(false);
-    }
+    if (!currentUser) return of(false);
 
-    // Map planId to "Standard" or "Pro"
-    let planName = 'Standard';
-    if (planId.toLowerCase() === 'pro') {
-      planName = 'Pro';
-    }
+    const planName = planId.toLowerCase() === 'pro' ? 'Pro' : 'Standard';
+    const token = this.getToken();
 
-    // Update in users storage
-    const users = this.getUsersFromStorage();
-    const userIndex = users.findIndex(
-      (u) => u.email.toLowerCase() === currentUser.email.toLowerCase(),
+    return this.apiService.putUserPlan(planName, token).pipe(
+      map((res) => {
+        if (res.success) {
+          const updated = { ...currentUser, plan: planName };
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          this.currentUserSubject.next(updated);
+          return true;
+        }
+        return false;
+      }),
+      catchError(() => {
+        // Fallback local update if offline
+        const updated = { ...currentUser, plan: planName };
+        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        this.currentUserSubject.next(updated);
+        return of(true);
+      })
     );
-    if (userIndex !== -1) {
-      users[userIndex].plan = planName;
-      this.saveUsersToStorage(users);
-    }
+  }
 
-    // Update in current user session
-    const updatedUser = { ...currentUser, plan: planName };
-    localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updatedUser));
-    this.currentUserSubject.next(updatedUser);
+  /**
+   * แก้ไขข้อมูลส่วนตัว (ชื่อ - นามสกุล, เบอร์โทร, อีเมล, รายละเอียด)
+   */
+  updateProfile(name: string, phone: string, email?: string, description?: string): Observable<{ success: boolean; message: string; user?: any }> {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) return of({ success: false, message: 'ไม่พบผู้ใช้งาน' });
 
-    return of(true).pipe(delay(100));
+    const token = this.getToken();
+    const payload = {
+      id: currentUser.id,
+      email: email || currentUser.email,
+      name,
+      phone,
+      description
+    };
+
+    return this.apiService.putUserProfile(payload, token).pipe(
+      map((res) => ({
+        success: res.success,
+        message: res.message || 'อัปเดตข้อมูลเรียบร้อยแล้ว',
+        user: res.user
+      })),
+      tap((res) => {
+        if (res.success && res.user) {
+          const updated = { 
+            ...currentUser, 
+            email: res.user.email || currentUser.email,
+            name: res.user.name, 
+            phone: res.user.phone,
+            description: res.user.description
+          };
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          this.currentUserSubject.next(updated);
+        }
+      }),
+      catchError(() => {
+        // Fallback local update if offline
+        const updated = { ...currentUser, email: email || currentUser.email, name, phone, description };
+        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        this.currentUserSubject.next(updated);
+        return of({ success: true, message: 'อัปเดตข้อมูลเรียบร้อยแล้ว (ออฟไลน์)', user: updated });
+      })
+    );
+  }
+
+  /**
+   * อัปโหลดรูปโปรไฟล์
+   */
+  uploadProfilePic(file: File): Observable<{ success: boolean; message: string; imagePath?: string }> {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) return of({ success: false, message: 'ไม่พบผู้ใช้งาน' });
+
+    const token = this.getToken();
+    const formData = new FormData();
+    formData.append('image', file);
+
+    return this.apiService.postUploadProfilePic(formData, token).pipe(
+      map((res) => ({
+        success: res.success,
+        message: res.message || 'อัปโหลดรูปภาพสำเร็จ',
+        imagePath: res.imagePath
+      })),
+      tap((res) => {
+        if (res.success && res.imagePath) {
+          const updated = { ...currentUser, pic: res.imagePath };
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          this.currentUserSubject.next(updated);
+        }
+      }),
+      catchError((err) => {
+        const errorMsg = err.error?.message || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
+        return of({ success: false, message: errorMsg });
+      })
+    );
   }
 }

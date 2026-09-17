@@ -24,6 +24,13 @@
         Overview
       </button>
       <button class="nav-link d-flex align-items-center gap-3 text-start border-0 w-100"
+        [class.active]="activeSection === 'export'"
+        [disabled]="isEditMode && activeSection !== 'export'"
+        type="button" (click)="onSelectSection('export')">
+        <span class="material-symbols-outlined">file_download</span>
+        Export Document
+      </button>
+      <button class="nav-link d-flex align-items-center gap-3 text-start border-0 w-100"
         [class.active]="activeSection === 'use-case'"
         [disabled]="isEditMode && activeSection !== 'use-case'"
         type="button" (click)="onSelectSection('use-case')">
@@ -37,7 +44,10 @@
         <span class="material-symbols-outlined">schema</span>
         Class Diagram
       </button>
-      <button class="nav-link d-flex align-items-center gap-3 text-start border-0 w-100" type="button" disabled>
+      <button class="nav-link d-flex align-items-center gap-3 text-start border-0 w-100"
+        [class.active]="activeSection === 'activity'"
+        [disabled]="isEditMode && activeSection !== 'activity'"
+        type="button" (click)="onSelectSection('activity')">
         <span class="material-symbols-outlined">settings_accessibility</span>
         Activity Diagram
       </button>

@@ -5,18 +5,44 @@
         <h2 class="h4 fw-bold mb-0">Use Case Diagram</h2>
       </div>
       <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
-        [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'use-case' }">
+        [routerLink]="['/dashboard/project', projectId, 'edit']" [queryParams]="{ diagram: 'use-case' }">
         <span class="material-symbols-outlined">edit</span>
         Edit
       </a>
     </div>
 
-    <div
-      class="diagram-preview-container w-100 rounded-3 border p-3 p-md-4 text-center mb-4 overflow-hidden position-relative"
-      [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'use-case' }" style="cursor: pointer;"
-      title="Click to Edit Diagram">
-      <img [src]="useCaseDiagramImage" alt="Use Case Diagram"
-        class="diagram-img img-fluid rounded-3 shadow-sm mx-auto d-block" />
+    <!-- พื้นที่รูปภาพ Diagram -->
+    <div class="diagram-preview-container w-100 rounded-3 border mb-4 overflow-hidden position-relative">
+      <!-- กรณีที่ยังไม่มีรูปภาพ -->
+      <div *ngIf="!useCaseDiagramImage || useCaseDiagramImage === 'ex-diagram.png'"
+        class="empty-state d-flex flex-column align-items-center justify-content-center p-5 text-center bg-white min-vh-50 w-100 h-100">
+        <div class="empty-icon-wrapper rounded-circle bg-primary bg-opacity-10 mb-4 p-4">
+          <span class="material-symbols-outlined text-primary" style="font-size: 48px;">upload_file</span>
+        </div>
+        <h5 class="fw-bold text-dark mb-2">ยังไม่มีรูปภาพ Diagram</h5>
+        <p class="text-secondary mb-4 max-w-sm">อัปโหลดรูปภาพ Use Case Diagram ของคุณเพื่อเริ่มต้นใช้งาน (รองรับไฟล์ PNG, JPG)</p>
+        
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
+        
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2" (click)="triggerFileInput()">
+          <span class="material-symbols-outlined">upload</span>
+          อัปโหลดรูปภาพ
+        </button>
+      </div>
+
+      <!-- กรณีที่มีรูปภาพแล้ว -->
+      <div *ngIf="useCaseDiagramImage && useCaseDiagramImage !== 'ex-diagram.png'" class="diagram-wrapper position-relative w-100 h-100 text-center bg-white p-3 p-md-4">
+        <img [src]="useCaseDiagramImage" alt="Use Case Diagram" class="diagram-img img-fluid rounded-3 shadow-sm mx-auto d-block" style="max-height: 70vh;" />
+          
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
+
+        <div class="diagram-controls position-absolute top-0 end-0 p-3 d-flex gap-2">
+          <button class="btn btn-danger shadow-sm d-inline-flex align-items-center gap-2 btn-sm px-3" (click)="removeImage()" title="ลบรูปภาพ">
+            <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+            <span>ลบ</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
@@ -45,11 +71,17 @@
         <tbody>
           <tr *ngFor="let useCase of useCases">
             <th scope="row">{{ useCase.id }}</th>
-            <td>{{ useCase.type }}</td>
-            <td>{{ useCase.caption }}</td>
-            <td>{{ useCase.description }}</td>
+            <td><span class="badge text-bg-light border text-dark">{{ useCase.type }}</span></td>
+            <td class="fw-semibold text-dark">{{ useCase.caption }}</td>
+            <td class="small text-secondary">{{ useCase.description || '-' }}</td>
             <td>
               <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-light icon-button" type="button" title="View Detail" (click)="openViewModal(useCase)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button class="btn btn-sm btn-light icon-button" type="button" title="Edit" (click)="openEditModal(useCase)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
                 <button class="btn btn-sm btn-light icon-button delete-button" type="button"
                   [attr.aria-label]="'Delete ' + useCase.caption" title="Delete" (click)="deleteUseCase(useCase.id)">
                   <span class="material-symbols-outlined">delete</span>
@@ -66,7 +98,7 @@
   </div>
 </section>
 
-<!-- Add Use Case Pop-up -->
+<!-- ป๊อปอัปสำหรับเพิ่ม / แก้ไข Use Case -->
 <div *ngIf="isAddModalOpen" class="modal-backdrop fade show" (click)="closeAddModal()"></div>
 <div *ngIf="isAddModalOpen" class="modal d-block" tabindex="-1" role="dialog" aria-labelledby="addUseCaseModalTitle">
   <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
@@ -74,7 +106,7 @@
       <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom">
         <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0" id="addUseCaseModalTitle">
           <span class="material-symbols-outlined text-primary">add_circle</span>
-          Add New Use Case
+          {{ isEditMode ? 'Edit Use Case Element' : 'Add New Use Case Element' }}
         </h5>
         <button type="button" class="btn-close" aria-label="Close" (click)="closeAddModal()"></button>
       </div>
@@ -97,12 +129,12 @@
           <div class="mb-3">
             <label for="useCaseCaptionInput" class="form-label fw-semibold small">Caption <span
                 class="text-danger">*</span></label>
-            <input id="useCaseCaptionInput" type="text" class="form-control" placeholder=""
+            <input id="useCaseCaptionInput" type="text" class="form-control" placeholder="กรอกชื่อ Caption"
               [(ngModel)]="newUseCase.caption" name="useCaseCaption" required />
           </div>
           <div class="mb-2">
             <label for="useCaseDescInput" class="form-label fw-semibold small">Description</label>
-            <textarea id="useCaseDescInput" class="form-control" rows="3" placeholder=""
+            <textarea id="useCaseDescInput" class="form-control" rows="3" placeholder="รายละเอียดของ Use Case..."
               [(ngModel)]="newUseCase.description" name="useCaseDescription"></textarea>
           </div>
         </div>
@@ -116,6 +148,50 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ป๊อปอัปสำหรับดูรายละเอียด Use Case -->
+<div *ngIf="isViewModalOpen" class="modal-backdrop fade show" (click)="closeViewModal()"></div>
+<div *ngIf="isViewModalOpen && selectedUseCaseForView" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="viewUseCaseModalTitle">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge text-bg-primary fs-6">{{ selectedUseCaseForView.id }}</span>
+          <h5 class="modal-title fw-bold mb-0" id="viewUseCaseModalTitle">{{ selectedUseCaseForView.caption }}</h5>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeViewModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- แสดงรูปภาพ Diagram -->
+        <div class="mb-4 text-center bg-light p-3 rounded-3 border">
+          <h6 class="fw-bold text-start text-dark mb-3 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-primary">image</span>
+            รูปภาพ Use Case Diagram
+          </h6>
+          <!-- แสดงรูปภาพเฉพาะในโหมดดูเท่านั้น -->
+          <img [src]="useCaseDiagramImage" alt="Use Case Diagram" class="img-fluid rounded border shadow-sm" style="max-height: 300px;" />
+        </div>
+
+        <div class="mb-3">
+          <div class="text-muted small">Type:</div>
+          <div class="fw-bold text-dark"><span class="badge text-bg-info">{{ selectedUseCaseForView.type }}</span></div>
+        </div>
+        <div class="mb-3">
+          <div class="text-muted small">Caption:</div>
+          <div class="fw-bold fs-5 text-dark">{{ selectedUseCaseForView.caption }}</div>
+        </div>
+        <div>
+          <div class="text-muted small">Description:</div>
+          <div class="fw-medium text-secondary">{{ selectedUseCaseForView.description || 'No description provided.' }}</div>
+        </div>
+      </div>
+      <div class="modal-footer bg-body-tertiary px-4 py-2 border-top">
+        <button type="button" class="btn btn-secondary px-4 rounded-3" (click)="closeViewModal()">Close</button>
+      </div>
     </div>
   </div>
 </div>

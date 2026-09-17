@@ -4,18 +4,47 @@
       <div>
         <h2 class="h4 fw-bold mb-0">Class Diagram</h2>
       </div>
-      <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
-        [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'class' }">
-        <span class="material-symbols-outlined">edit</span>
-        Edit
-      </a>
+      <div class="d-flex gap-2">
+        <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+          [routerLink]="['/dashboard/project', projectId, 'edit']" [queryParams]="{ diagram: 'class' }">
+          <span class="material-symbols-outlined">edit</span>
+          Edit
+        </a>
+      </div>
     </div>
 
-    <div
-      class="diagram-preview-container w-100 rounded-3 border p-3 p-md-4 text-center mb-4 overflow-hidden position-relative"
-      [routerLink]="['/dashboard/project/1/edit']" [queryParams]="{ diagram: 'class' }" style="cursor: pointer;" title="Click to Edit Diagram">
-      <img [src]="classDiagramImage" alt="Class Diagram"
-        class="diagram-img img-fluid rounded-3 shadow-sm mx-auto d-block" />
+    <!-- พื้นที่รูปภาพ Diagram -->
+    <div class="diagram-preview-container w-100 rounded-3 border mb-4 overflow-hidden position-relative">
+      <!-- กรณีที่ยังไม่มีรูปภาพ -->
+      <div *ngIf="!classDiagramImage || classDiagramImage === 'ex-class-diagram.png'"
+        class="empty-state d-flex flex-column align-items-center justify-content-center p-5 text-center bg-white min-vh-50 w-100 h-100">
+        <div class="empty-icon-wrapper rounded-circle bg-primary bg-opacity-10 mb-4 p-4">
+          <span class="material-symbols-outlined text-primary" style="font-size: 48px;">upload_file</span>
+        </div>
+        <h5 class="fw-bold text-dark mb-2">ยังไม่มีรูปภาพ Diagram</h5>
+        <p class="text-secondary mb-4 max-w-sm">อัปโหลดรูปภาพ Class Diagram ของคุณเพื่อเริ่มต้นใช้งาน (รองรับไฟล์ PNG, JPG)</p>
+        
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
+        
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2" (click)="triggerFileInput()">
+          <span class="material-symbols-outlined">upload</span>
+          อัปโหลดรูปภาพ
+        </button>
+      </div>
+
+      <!-- กรณีที่มีรูปภาพแล้ว -->
+      <div *ngIf="classDiagramImage && classDiagramImage !== 'ex-class-diagram.png'" class="diagram-wrapper position-relative w-100 h-100 text-center bg-white p-3 p-md-4">
+        <img [src]="classDiagramImage" alt="Class Diagram" class="diagram-img img-fluid rounded-3 shadow-sm mx-auto d-block" style="max-height: 70vh;" />
+          
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
+
+        <div class="diagram-controls position-absolute top-0 end-0 p-3 d-flex gap-2">
+          <button class="btn btn-danger shadow-sm d-inline-flex align-items-center gap-2 btn-sm px-3" (click)="removeImage()" title="ลบรูปภาพ">
+            <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+            <span>ลบ</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
@@ -59,6 +88,10 @@
                   (click)="openViewClassModal(item)">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
+                <button class="btn btn-sm btn-light icon-button" type="button" title="Edit"
+                  (click)="openEditClassModal(item)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
                 <button class="btn btn-sm btn-light icon-button delete-button" type="button"
                   [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="deleteClassItem(item.id)">
                   <span class="material-symbols-outlined">delete</span>
@@ -75,7 +108,7 @@
   </div>
 </section>
 
-<!-- Add Class Pop-up -->
+<!-- ป๊อปอัปสำหรับเพิ่ม / แก้ไข Class -->
 <div *ngIf="isAddClassModalOpen" class="modal-backdrop fade show" (click)="closeAddClassModal()"></div>
 <div *ngIf="isAddClassModalOpen" class="modal d-block" tabindex="-1" role="dialog" aria-labelledby="addClassModalTitle">
   <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" (click)="$event.stopPropagation()">
@@ -83,7 +116,7 @@
       <div
         class="modal-header bg-body-tertiary px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
         <h5 class="modal-title fw-bold mb-0" id="addClassModalTitle">
-          Add New Class Diagram Element
+          {{ isEditMode ? 'Edit Class Diagram Element' : 'Add New Class Diagram Element' }}
         </h5>
         <button type="button" class="btn-close" aria-label="Close" (click)="closeAddClassModal()"></button>
       </div>
@@ -103,9 +136,7 @@
                   <select id="classReferenceSelect" class="form-select" [(ngModel)]="newClassItem.reference"
                     name="classReference">
                     <option value="None">None</option>
-                    <option value="REF-01">REF-01 (Core Domain)</option>
-                    <option value="REF-02">REF-02 (Authentication)</option>
-                    <option value="REF-03">REF-03 (Data Management)</option>
+                    <option *ngFor="let uc of useCaseItems" [value]="uc.id">{{ uc.id }} ({{ uc.caption || 'No Caption' }})</option>
                   </select>
                 </div>
                 <div class="col-12 col-md-4">
@@ -305,7 +336,7 @@
                   </button>
                 </div>
 
-                <!-- 1) Method Main Details Table -->
+                <!-- 1) ตารางรายละเอียดหลักของ Method -->
                 <div class="table-responsive mb-3">
                   <table class="table table-sm table-bordered bg-white align-middle mb-0">
                     <thead class="table-light small text-secondary">
@@ -345,7 +376,7 @@
                   </table>
                 </div>
 
-                <!-- 2) Return Details Table -->
+                <!-- 2) ตารางรายละเอียด Return ของ Method -->
                 <div class="table-responsive mb-3">
                   <table class="table table-sm table-bordered bg-white align-middle mb-0">
                     <thead class="table-light small">
@@ -377,7 +408,7 @@
                   </table>
                 </div>
 
-                <!-- 3) List of Parameters Table -->
+                <!-- 3) ตารางรายละเอียด Parameter ของ Method -->
                 <div class="table-responsive">
                   <table class="table table-sm table-bordered bg-white align-middle mb-0">
                     <thead class="table-light small">
@@ -445,7 +476,7 @@
   </div>
 </div>
 
-<!-- View Class Detail Pop-up -->
+<!-- ป๊อปอัปสำหรับดูรายละเอียด Class -->
 <div *ngIf="isViewClassModalOpen" class="modal-backdrop fade show" (click)="closeViewClassModal()"></div>
 <div *ngIf="isViewClassModalOpen && selectedClassDetail" class="modal d-block" tabindex="-1" role="dialog"
   aria-labelledby="viewClassModalTitle">
@@ -462,7 +493,7 @@
       </div>
 
       <div class="modal-body p-4 overflow-auto">
-        <!-- Overview -->
+        <!-- ภาพรวม -->
         <div class="mb-4">
           <div class="text-muted small">Description:</div>
           <div class="fw-medium">{{ selectedClassDetail.description || 'No description provided.' }}</div>
@@ -470,7 +501,7 @@
               || 'None' }}</strong></div>
         </div>
 
-        <!-- Extends Table -->
+        <!-- ตาราง Extends -->
         <div class="mb-4">
           <h6 class="fw-bold text-primary">Extends</h6>
           <div class="table-responsive">
@@ -494,7 +525,7 @@
           </div>
         </div>
 
-        <!-- Implements Interfaces Table -->
+        <!-- ตาราง Implements Interfaces -->
         <div class="mb-4">
           <h6 class="fw-bold text-primary">Implements Interfaces</h6>
           <div class="table-responsive">
@@ -518,7 +549,7 @@
           </div>
         </div>
 
-        <!-- Attributes Table -->
+        <!-- ตาราง Attributes -->
         <div class="mb-4">
           <h6 class="fw-bold text-primary">
             Attributes ({{ selectedClassDetail.attributes.length }})
@@ -550,7 +581,7 @@
           </div>
         </div>
 
-        <!-- Methods Table -->
+        <!-- ตาราง Methods -->
         <div>
           <h6 class="fw-bold text-primary">
             Methods ({{ selectedClassDetail.methods.length }})

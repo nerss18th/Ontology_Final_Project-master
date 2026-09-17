@@ -40,7 +40,7 @@ export class Login {
           this.isLoading = false;
           if (res.success) {
             console.log('Login success:', res.message);
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/dashboard'], { queryParams: { tab: 'profile' } });
           } else {
             this.errorMessage = res.message;
           }
