@@ -149,35 +149,39 @@ export class BackendApiService {
   // EXPORT API ENDPOINTS
   // ==========================================
 
-  getExportUseCase(projectId: string | number, token?: string | null): Observable<Blob> {
-    let headers = this.getHeaders(token);
-    // Remove default content-type if any and set accept
-    headers = headers.set('Accept', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    
-    return this.http.get(`${this.baseUrl}/export/project/${projectId}/use-case`, { 
-      headers: headers,
-      responseType: 'blob' 
+  getExportUseCase(projectId: string | number, token: string | null): Observable<Blob> {
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    const noCache = new Date().getTime();
+    return this.http.get(`${this.baseUrl}/export/project/${projectId}/use-case?_t=${noCache}`, {
+      headers,
+      responseType: 'blob'
     });
   }
 
-  getExportClassDiagram(projectId: string | number, token?: string | null): Observable<Blob> {
-    let headers = this.getHeaders(token);
-    headers = headers.set('Accept', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    
-    return this.http.get(`${this.baseUrl}/export/project/${projectId}/class-diagram`, { 
-      headers: headers,
-      responseType: 'blob' 
+  getExportClassDiagram(projectId: string | number, token: string | null): Observable<Blob> {
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    const noCache = new Date().getTime();
+    return this.http.get(`${this.baseUrl}/export/project/${projectId}/class-diagram?_t=${noCache}`, {
+      headers,
+      responseType: 'blob'
     });
   }
 
-  getExportActivityDiagram(projectId: string | number, token?: string | null): Observable<Blob> {
-    let headers = this.getHeaders(token);
-    headers = headers.set('Accept', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    
-    return this.http.get(`${this.baseUrl}/export/project/${projectId}/activity-diagram`, { 
-      headers: headers,
-      responseType: 'blob' 
+  getExportActivityDiagram(projectId: string | number, token: string | null): Observable<Blob> {
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    const noCache = new Date().getTime();
+    return this.http.get(`${this.baseUrl}/export/project/${projectId}/activity-diagram?_t=${noCache}`, {
+      headers,
+      responseType: 'blob'
     });
   }
 }
-

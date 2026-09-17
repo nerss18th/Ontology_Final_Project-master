@@ -72,7 +72,7 @@ export interface ActivityDiagramItem {
 @Component({
   selector: 'app-activity-diagram',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './activity-diagram.html',
   styleUrl: './activity-diagram.css',
 })
