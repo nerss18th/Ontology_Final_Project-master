@@ -43,7 +43,7 @@ export class Promotion {
       description: '',
       features: [
         'Unlimited active Project',
-        'High-resolution export options (PDF, Docs)',
+        'Pro export options (PDF, Docs)',
         'Team Management (Add Member)'
       ],
       isPopular: false,
