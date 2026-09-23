@@ -33,7 +33,6 @@ export class DiagramEditor implements OnInit {
     { email: 'pro@gmail.com', name: 'Pro User (Owner)', role: 'Owner' },
   ];
   public newMemberEmail = '';
-  public newMemberRole = 'Editor';
 
   public projectId: string = '1';
 
@@ -95,7 +94,7 @@ export class DiagramEditor implements OnInit {
     this.teamMembers.push({
       email,
       name: email.split('@')[0],
-      role: this.newMemberRole,
+      role: 'Editor',
     });
     this.newMemberEmail = '';
   }

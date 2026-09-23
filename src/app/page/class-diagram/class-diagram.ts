@@ -60,6 +60,7 @@ export class ClassDiagram implements OnInit {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   @Input() projectId!: string | number;
+  @Input() isViewer: boolean = false;
   public token: string | null = null;
   public classDiagramImage = 'ex-class-diagram.png';
   public diagramFileName: string | null = null;

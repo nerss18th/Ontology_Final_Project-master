@@ -72,9 +72,15 @@
             class="invalid-feedback d-flex align-items-center mt-1 ps-1"
           >
             <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
-            <span *ngIf="loginForm.get('password')?.hasError('required')">กรุณาใส่รหัสผ่าน</span>
-            <span *ngIf="loginForm.get('password')?.hasError('minlength')">กรุณาใส่รหัสผ่าน 8 ตัวอักษรขึ้นไป</span>
-            <span *ngIf="loginForm.get('password')?.hasError('pattern')">รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น (ต้องมีทั้งคู่)</span>
+            <span *ngIf="loginForm.get('password')?.hasError('required')">
+              กรุณาใส่รหัสผ่าน
+            </span>
+            <span *ngIf="!loginForm.get('password')?.hasError('required') && loginForm.get('password')?.hasError('minlength')">
+              กรุณาใส่รหัสผ่าน 8 ตัวอักษรขึ้นไป
+            </span>
+            <span *ngIf="!loginForm.get('password')?.hasError('required') && !loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.hasError('pattern')">
+              รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น (ต้องมีทั้งคู่)
+            </span>
           </div>
         </div>
 
@@ -120,6 +126,18 @@
             <div>
               <div class="fw-semibold text-dark" style="font-size: 12px">Pro Test Account</div>
               <div class="text-muted" style="font-size: 11px">pro@gmail.com</div>
+            </div>
+            <span class="material-symbols-outlined fs-6 text-primary">arrow_forward</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+            (click)="quickFill('admin@gmail.com', 'admin123456')"
+          >
+            <div>
+              <div class="fw-semibold text-dark" style="font-size: 12px">Admin Test Account</div>
+              <div class="text-muted" style="font-size: 11px">admin@gmail.com</div>
             </div>
             <span class="material-symbols-outlined fs-6 text-primary">arrow_forward</span>
           </button>

@@ -45,7 +45,7 @@ export class UserPlanService {
 
   private getCurrentUserFromSession(): any {
     try {
-      const savedUser = localStorage.getItem('mock_current_user');
+      const savedUser = sessionStorage.getItem('mock_current_user');
       return savedUser ? JSON.parse(savedUser) : null;
     } catch (e) {
       return null;

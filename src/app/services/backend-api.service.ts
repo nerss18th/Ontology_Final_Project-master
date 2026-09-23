@@ -184,4 +184,24 @@ export class BackendApiService {
       responseType: 'blob'
     });
   }
+
+  // ==========================================
+  // ADMIN API ENDPOINTS
+  // ==========================================
+
+  getAdminUsers(token?: string | null): Observable<ApiResponse> {
+    return this.http.get<ApiResponse>(`${this.baseUrl}/admin/users`, { headers: this.getHeaders(token) });
+  }
+
+  putAdminUserRole(id: string | number, role: string, token?: string | null): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.baseUrl}/admin/users/${id}/role`, { role }, { headers: this.getHeaders(token) });
+  }
+
+  deleteAdminUser(id: string | number, token?: string | null): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.baseUrl}/admin/users/${id}`, { headers: this.getHeaders(token) });
+  }
+
+  getAdminUserProjects(id: string | number, token?: string | null): Observable<ApiResponse> {
+    return this.http.get<ApiResponse>(`${this.baseUrl}/admin/users/${id}/projects`, { headers: this.getHeaders(token) });
+  }
 }

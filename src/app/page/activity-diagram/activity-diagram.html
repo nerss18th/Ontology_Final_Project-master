@@ -14,7 +14,7 @@
         <h3 class="h5 fw-bold mb-0">Activity Summary</h3>
         <span class="badge text-bg-light border">{{ activityDiagrams.length }} Activity Diagrams</span>
       </div>
-      <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
+      <button *ngIf="!isViewer" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
         (click)="openAddModal()">
         <span class="material-symbols-outlined">add</span>
         Add Activity Diagram
@@ -55,11 +55,11 @@
                   (click)="openViewModal(item)">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
-                <button class="btn btn-sm btn-light icon-button" type="button" title="Edit"
+                <button *ngIf="!isViewer" class="btn btn-sm btn-light icon-button" type="button" title="Edit"
                   (click)="openEditModal(item)">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="btn btn-sm btn-light icon-button delete-button" type="button"
+                <button *ngIf="!isViewer" class="btn btn-sm btn-light icon-button delete-button" type="button"
                   [attr.aria-label]="'Delete ' + item.activityName" title="Delete" (click)="deleteActivityItem(item.id, item.activityId)">
                   <span class="material-symbols-outlined">delete</span>
                 </button>
@@ -98,11 +98,11 @@
               <span>รูปภาพ Activity Diagram (แยกกันในแต่ละ Diagram)</span>
               <div>
                 <input #fileInput type="file" accept="image/*" class="d-none" (change)="onFileSelected($event)" />
-                <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="triggerFileInput()">
+                <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-primary me-2" (click)="triggerFileInput()">
                   <span class="material-symbols-outlined fs-6 align-middle me-1">upload_file</span>
                   {{ selectedDiagramForEdit.imagePath ? 'เปลี่ยนรูปภาพ' : 'อัปโหลดรูปภาพ' }}
                 </button>
-                <button *ngIf="selectedDiagramForEdit.imagePath" type="button" class="btn btn-sm btn-outline-danger" (click)="removeImage()">
+                <button *ngIf="!isViewer && selectedDiagramForEdit.imagePath" type="button" class="btn btn-sm btn-outline-danger" (click)="removeImage()">
                   ลบรูป
                 </button>
               </div>
@@ -161,7 +161,7 @@
           <div class="card border mb-4 rounded-3 shadow-sm">
             <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
               <span>2. ส่วนของ Swimlane</span>
-              <button *ngIf="selectedDiagramForEdit.hasSwimlane === 'Yes'" type="button" class="btn btn-sm btn-outline-primary" (click)="addSwimlane()">
+              <button *ngIf="!isViewer && selectedDiagramForEdit.hasSwimlane === 'Yes'" type="button" class="btn btn-sm btn-outline-primary" (click)="addSwimlane()">
                 + เพิ่ม Lane
               </button>
             </div>
@@ -202,7 +202,7 @@
                         <input type="text" class="form-control form-control-sm" [(ngModel)]="lane.referenceId" [name]="'laneRef_' + i" placeholder="Ref ID" />
                       </td>
                       <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteSwimlane(i)">
+                        <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteSwimlane(i)">
                           <span class="material-symbols-outlined fs-6">delete</span>
                         </button>
                       </td>
@@ -245,7 +245,7 @@
           <div class="card border mb-4 rounded-3 shadow-sm">
             <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
               <span>4. ส่วนของ End Point</span>
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addEndPoint()">
+              <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-primary" (click)="addEndPoint()">
                 + เพิ่ม End Point
               </button>
             </div>
@@ -285,7 +285,7 @@
                         </select>
                       </td>
                       <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteEndPoint(i)">
+                        <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteEndPoint(i)">
                           <span class="material-symbols-outlined fs-6">delete</span>
                         </button>
                       </td>
@@ -303,7 +303,7 @@
           <div class="card border mb-4 rounded-3 shadow-sm">
             <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
               <span>5. ส่วนของ Action</span>
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addAction()">
+              <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-primary" (click)="addAction()">
                 + เพิ่ม Action
               </button>
             </div>
@@ -337,7 +337,7 @@
                         <input type="text" class="form-control form-control-sm" [(ngModel)]="act.description" [name]="'actDesc_' + i" placeholder="Description" />
                       </td>
                       <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteAction(i)">
+                        <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteAction(i)">
                           <span class="material-symbols-outlined fs-6">delete</span>
                         </button>
                       </td>
@@ -355,7 +355,7 @@
           <div class="card border mb-3 rounded-3 shadow-sm">
             <div class="card-header bg-light-subtle fw-bold text-primary py-2 d-flex align-items-center justify-content-between">
               <span>6. ส่วนของ Decision Node</span>
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addDecisionNode()">
+              <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-primary" (click)="addDecisionNode()">
                 + เพิ่ม Decision Node
               </button>
             </div>
@@ -363,7 +363,7 @@
               <div *ngFor="let dn of selectedDiagramForEdit.decisionNodes; let dnIdx = index" class="border rounded p-3 mb-3 bg-light shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
                   <span class="fw-bold text-primary">Decision Node #{{ dn.decisionNo }}</span>
-                  <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteDecisionNode(dnIdx)">
+                  <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteDecisionNode(dnIdx)">
                     <span class="material-symbols-outlined fs-6">delete</span>
                   </button>
                 </div>
@@ -397,7 +397,7 @@
                 <div class="table-responsive rounded-3 border bg-white p-2">
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-semibold small text-secondary">ตาราง Criteria</span>
-                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" (click)="addCriteria(dn)">
+                    <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" (click)="addCriteria(dn)">
                       + เพิ่ม Criteria
                     </button>
                   </div>
@@ -425,7 +425,7 @@
                           </select>
                         </td>
                         <td class="text-center">
-                          <button type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteCriteria(dn, cIdx)">
+                          <button *ngIf="!isViewer" type="button" class="btn btn-sm btn-outline-danger icon-button" (click)="deleteCriteria(dn, cIdx)">
                             <span class="material-symbols-outlined fs-6">close</span>
                           </button>
                         </td>
@@ -441,7 +441,7 @@
 
         <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
           <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3" (click)="closeAddModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2" [disabled]="!selectedDiagramForEdit.activityName.trim() || isSaving">
+          <button *ngIf="!isViewer" type="submit" class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2" [disabled]="!selectedDiagramForEdit.activityName.trim() || isSaving">
             <span class="material-symbols-outlined fs-6">check</span>
             {{ isSaving ? 'Saving...' : 'Save Activity Diagram' }}
           </button>

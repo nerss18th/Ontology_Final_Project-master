@@ -80,6 +80,7 @@ export class ActivityDiagram implements OnInit {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   @Input() projectId!: string | number;
+  @Input() isViewer: boolean = false;
   public token: string | null = null;
   public activityDiagramImage = 'ex-diagram.png';
   public diagramFileName: string | null = null;

@@ -28,12 +28,10 @@ export class Promotion {
       name: 'STANDARD',
       price: 'Free',
       period: 'forever',
-      description: 'Ideal for individuals starting out with diagram design.',
+      description: '',
       features: [
-        'Up to 3 active diagrams',
-        'Standard export options (PNG, PDF)',
-        'Basic sharing links',
-        'Community support',
+        'Up to 1 Active Project',
+        'Standard export options (PDF)',
       ],
       icon: 'architecture',
     },
@@ -42,13 +40,11 @@ export class Promotion {
       name: 'Professional',
       price: '149 Bahts',
       period: 'per month',
-      description: 'Perfect for professionals and freelancers needing advanced tools.',
+      description: '',
       features: [
-        'Unlimited active diagrams',
-        'High-resolution exports (SVG, PDF, HTML)',
-        'Real-time collaborative editing',
-        'Priority customer support',
-        'Custom template builder',
+        'Unlimited active Project',
+        'High-resolution export options (PDF, Docs)',
+        'Team Management (Add Member)'
       ],
       isPopular: false,
       icon: 'workspace_premium',
@@ -61,7 +57,7 @@ export class Promotion {
     private router: Router,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-  ) {}
+  ) { }
 
   selectPlan(planId: string) {
     this.selectedPlanId = planId;

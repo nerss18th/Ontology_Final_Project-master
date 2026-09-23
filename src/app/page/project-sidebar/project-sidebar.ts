@@ -10,7 +10,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class ProjectSidebar {
   @Input() projectName: string = 'Project 1';
-  @Input() activeSection: string = 'use-case';
+  @Input() activeSection: string = 'overview';
+  @Input() isViewer: boolean = false;
   @Input() isEditMode: boolean = false;
 
   @Output() sectionChange = new EventEmitter<string>();

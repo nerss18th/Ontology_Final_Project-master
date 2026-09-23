@@ -6,7 +6,7 @@ import { BackendApiService } from './backend-api.service';
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user?: { id?: number; email: string; name?: string; username?: string; phone?: string; plan?: string | null; pic?: string | null; description?: string | null };
+  user?: { id?: number; email: string; name?: string; username?: string; phone?: string; plan?: string | null; pic?: string | null; description?: string | null; role?: string };
   token?: string;
 }
 
@@ -26,16 +26,17 @@ export class AuthService {
     plan?: string | null;
     pic?: string | null;
     description?: string | null;
+    role?: string;
   } | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private apiService: BackendApiService) {
-    const savedUser = localStorage.getItem(this.CURRENT_USER_KEY);
+    const savedUser = sessionStorage.getItem(this.CURRENT_USER_KEY);
     if (savedUser) {
       try {
         this.currentUserSubject.next(JSON.parse(savedUser));
       } catch (e) {
-        localStorage.removeItem(this.CURRENT_USER_KEY);
+        sessionStorage.removeItem(this.CURRENT_USER_KEY);
       }
     }
   }
@@ -54,9 +55,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.user) {
           if (res.token) {
-            localStorage.setItem(this.TOKEN_KEY, res.token);
+            sessionStorage.setItem(this.TOKEN_KEY, res.token);
           }
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
+          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
           this.currentUserSubject.next(res.user);
         }
       }),
@@ -81,9 +82,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.user) {
           if (res.token) {
-            localStorage.setItem(this.TOKEN_KEY, res.token);
+            sessionStorage.setItem(this.TOKEN_KEY, res.token);
           }
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
+          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
           this.currentUserSubject.next(res.user);
         }
       }),
@@ -98,8 +99,8 @@ export class AuthService {
    * ออกจากระบบ
    */
   logout(): void {
-    localStorage.removeItem(this.CURRENT_USER_KEY);
-    localStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.CURRENT_USER_KEY);
+    sessionStorage.removeItem(this.TOKEN_KEY);
     this.currentUserSubject.next(null);
   }
 
@@ -114,7 +115,7 @@ export class AuthService {
    * ดึง Token ปัจจุบัน
    */
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   /**
@@ -131,7 +132,7 @@ export class AuthService {
       map((res) => {
         if (res.success) {
           const updated = { ...currentUser, plan: planName };
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
           return true;
         }
@@ -140,7 +141,7 @@ export class AuthService {
       catchError(() => {
         // Fallback local update if offline
         const updated = { ...currentUser, plan: planName };
-        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
         this.currentUserSubject.next(updated);
         return of(true);
       })
@@ -178,14 +179,14 @@ export class AuthService {
             phone: res.user.phone,
             description: res.user.description
           };
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
         }
       }),
       catchError(() => {
         // Fallback local update if offline
         const updated = { ...currentUser, email: email || currentUser.email, name, phone, description };
-        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
         this.currentUserSubject.next(updated);
         return of({ success: true, message: 'อัปเดตข้อมูลเรียบร้อยแล้ว (ออฟไลน์)', user: updated });
       })
@@ -212,7 +213,7 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.imagePath) {
           const updated = { ...currentUser, pic: res.imagePath };
-          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
         }
       }),

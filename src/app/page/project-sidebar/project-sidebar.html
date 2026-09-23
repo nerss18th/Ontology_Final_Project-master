@@ -6,7 +6,7 @@
       </div>
       <div class="d-flex align-items-center gap-2">
         <h1 class="h6 fw-bold mb-0 text-truncate">{{ projectName }}</h1>
-        <button
+        <button *ngIf="!isViewer"
           class="btn btn-sm btn-light border-0 p-0 d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
           style="width: 26px; height: 26px;" type="button" (click)="onOpenEditProject()"
           title="Edit Project Details">

@@ -13,9 +13,10 @@ import { ActivityDiagram } from '../activity-diagram/activity-diagram';
 import { Overview } from '../overview/overview';
 
 interface TeamMember {
+  id?: number | string;
   email: string;
   name?: string;
-  role: 'Owner' | 'Editor' | 'Viewer';
+  role: 'Owner' | 'Editor';
 }
 
 @Component({
@@ -53,7 +54,7 @@ export class ProjectDetail implements OnInit, OnDestroy {
 
   public teamMembers: TeamMember[] = [];
   public newMemberEmail = '';
-  public newMemberRole: 'Editor' | 'Viewer' = 'Editor';
+  public isViewer = false;
 
   constructor(
     private authService: AuthService,
@@ -83,6 +84,9 @@ export class ProjectDetail implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * ดึงข้อมูลรายละเอียดของโปรเจกต์และรายชื่อสมาชิกจาก API
+   */
   loadProjectDetails(): void {
     const token = this.authService.getToken();
     if (!this.projectId) return;
@@ -100,6 +104,8 @@ export class ProjectDetail implements OnInit, OnDestroy {
             name: m.name || m.email.split('@')[0],
             role: m.role
           }));
+          const myMember = this.teamMembers.find(m => m.email === this.currentUser?.email || (m.id && m.id === this.currentUser?.id));
+          this.isViewer = false;
         }
         this.cdr.detectChanges();
       },
@@ -144,6 +150,9 @@ export class ProjectDetail implements OnInit, OnDestroy {
     this.isEditProjectModalOpen = false;
   }
 
+  /**
+   * บันทึกการแก้ไขชื่อและรายละเอียดของโปรเจกต์
+   */
   saveProjectDetails(): void {
     if (!this.editProjectName.trim()) return;
     
@@ -168,6 +177,9 @@ export class ProjectDetail implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * เพิ่มสมาชิกใหม่ (Editor) เข้ามาในโปรเจกต์ (เฉพาะบัญชี Pro)
+   */
   addTeamMember(): void {
     const email = this.newMemberEmail.trim();
     if (!email) return;
@@ -178,7 +190,7 @@ export class ProjectDetail implements OnInit, OnDestroy {
     }
 
     const token = this.authService.getToken();
-    this.backendApi.postProjectMember(this.projectId, { email, role: this.newMemberRole }, token).subscribe({
+    this.backendApi.postProjectMember(this.projectId, { email, role: 'Editor' }, token).subscribe({
       next: (res) => {
         if (res.success) {
           this.loadProjectDetails();
@@ -193,6 +205,9 @@ export class ProjectDetail implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * ลบสมาชิกออกจากโปรเจกต์
+   */
   removeTeamMember(member: any): void {
     if (!member.id) return;
     if (confirm(`คุณต้องการลบสมาชิก ${member.email} ใช่หรือไม่?`)) {
@@ -215,6 +230,9 @@ export class ProjectDetail implements OnInit, OnDestroy {
   // ==========================================
   // EXPORT METHODS
   // ==========================================
+  /**
+   * ดาวน์โหลด (Export) แผนภาพ Use Case ออกมาเป็นไฟล์เอกสาร Word
+   */
   exportUseCaseDoc(): void {
     const token = this.authService.getToken();
     this.backendApi.getExportUseCase(this.projectId, token).subscribe({

@@ -4,7 +4,7 @@
       <div>
         <h2 class="h4 fw-bold mb-0">Use Case Diagram</h2>
       </div>
-      <a class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
+      <a *ngIf="!isViewer" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2"
         [routerLink]="['/dashboard/project', projectId, 'edit']" [queryParams]="{ diagram: 'use-case' }">
         <span class="material-symbols-outlined">edit</span>
         Edit
@@ -24,7 +24,7 @@
         
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
         
-        <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2" (click)="triggerFileInput()">
+        <button *ngIf="!isViewer" class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2" (click)="triggerFileInput()">
           <span class="material-symbols-outlined">upload</span>
           อัปโหลดรูปภาพ
         </button>
@@ -37,7 +37,7 @@
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg" style="display: none;">
 
         <div class="diagram-controls position-absolute top-0 end-0 p-3 d-flex gap-2">
-          <button class="btn btn-danger shadow-sm d-inline-flex align-items-center gap-2 btn-sm px-3" (click)="removeImage()" title="ลบรูปภาพ">
+          <button *ngIf="!isViewer" class="btn btn-danger shadow-sm d-inline-flex align-items-center gap-2 btn-sm px-3" (click)="removeImage()" title="ลบรูปภาพ">
             <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
             <span>ลบ</span>
           </button>
@@ -50,7 +50,7 @@
         <h3 class="h5 fw-bold mb-0">Use Case Summary</h3>
         <span class="badge text-bg-light border">{{ useCases.length }} Use Cases</span>
       </div>
-      <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
+      <button *ngIf="!isViewer" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" type="button"
         (click)="openAddModal()">
         <span class="material-symbols-outlined">add</span>
         Add Use Case
@@ -79,10 +79,10 @@
                 <button class="btn btn-sm btn-light icon-button" type="button" title="View Detail" (click)="openViewModal(useCase)">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
-                <button class="btn btn-sm btn-light icon-button" type="button" title="Edit" (click)="openEditModal(useCase)">
+                <button *ngIf="!isViewer" class="btn btn-sm btn-light icon-button" type="button" title="Edit" (click)="openEditModal(useCase)">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
-                <button class="btn btn-sm btn-light icon-button delete-button" type="button"
+                <button *ngIf="!isViewer" class="btn btn-sm btn-light icon-button delete-button" type="button"
                   [attr.aria-label]="'Delete ' + useCase.caption" title="Delete" (click)="deleteUseCase(useCase.id)">
                   <span class="material-symbols-outlined">delete</span>
                 </button>
@@ -141,7 +141,7 @@
         <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
           <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
             (click)="closeAddModal()">Cancel</button>
-          <button type="submit"
+          <button *ngIf="!isViewer" type="submit"
             class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
             [disabled]="!newUseCase.caption.trim()">
             <span class="material-symbols-outlined fs-6">check</span>Save

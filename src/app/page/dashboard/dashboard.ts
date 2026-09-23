@@ -5,6 +5,8 @@ import { AuthService } from '../../services/auth.service';
 import { BackendApiService } from '../../services/backend-api.service';
 import { Observable } from 'rxjs';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { AdminUsers } from '../admin/admin-users/admin-users';
+import { AdminUserProjects } from '../admin/admin-user-projects/admin-user-projects';
 
 interface ProjectItem {
   id: string;
@@ -16,7 +18,7 @@ interface ProjectItem {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AdminUsers, AdminUserProjects],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -24,6 +26,7 @@ export class Dashboard implements OnInit {
   public currentUser$: Observable<any>;
   public activeTab = 'projects';
   public isAddProjectModalOpen = false;
+  public selectedAdminUserId: string | number | null = null;
 
   // Edit Profile Modal State
   public isEditProfileModalOpen = false;
@@ -66,6 +69,9 @@ export class Dashboard implements OnInit {
     this.loadProjects();
   }
 
+  /**
+   * ดึงรายการโปรเจกต์ทั้งหมดของผู้ใช้งานจาก API
+   */
   loadProjects(): void {
     const token = this.authService.getToken();
     this.backendApi.getProjects(token).subscribe({
@@ -86,12 +92,31 @@ export class Dashboard implements OnInit {
     });
   }
 
+  /**
+   * เปลี่ยนแถบเมนู (Tab) ปัจจุบันที่แสดงผล
+   */
   setActiveTab(tab: string) {
     this.activeTab = tab;
   }
 
-  public isUpgradeModalOpen = false;
+  viewUserProjects(userId: string | number) {
+    this.selectedAdminUserId = userId;
+    this.activeTab = 'admin-user-projects';
+  }
 
+  public isUpgradeModalOpen = false;
+  
+  // Error Modal State
+  public isErrorModalOpen = false;
+  public errorMessage = '';
+
+  // Delete Confirm Modal State
+  public isDeleteConfirmModalOpen = false;
+  public projectToDeleteId: string | null = null;
+
+  /**
+   * เปิดหน้าต่างป๊อปอัปสร้างโปรเจกต์ใหม่ (พร้อมตรวจสอบขีดจำกัดแพ็กเกจ Standard/Pro)
+   */
   openAddProjectModal(): void {
     let currentUserPlan = 'Standard';
     this.currentUser$.subscribe(user => {
@@ -118,12 +143,19 @@ export class Dashboard implements OnInit {
     this.isUpgradeModalOpen = false;
   }
 
+  closeErrorModal(): void {
+    this.isErrorModalOpen = false;
+  }
+
   closeAddProjectModal(): void {
     this.isAddProjectModalOpen = false;
     this.newProject = { id: '', name: '', detail: '' };
     this.cdr.detectChanges();
   }
 
+  /**
+   * บันทึกข้อมูลเพื่อสร้างโปรเจกต์ใหม่
+   */
   saveProject(): void {
     if (!this.newProject.name.trim() || this.isSavingProject) return;
     this.isSavingProject = true;
@@ -151,35 +183,51 @@ export class Dashboard implements OnInit {
     });
   }
 
-  deleteProject(id: string, event: Event): void {
+  openDeleteConfirmModal(id: string, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    
-    if (this.isDeletingProject) return;
+    this.projectToDeleteId = id;
+    this.isDeleteConfirmModalOpen = true;
+  }
 
-    if (confirm('คุณต้องการลบโปรเจกต์นี้ใช่หรือไม่? ข้อมูลภายในโปรเจกต์ทั้งหมดจะถูกลบ')) {
-      this.isDeletingProject = true;
-      const token = this.authService.getToken();
-      this.backendApi.deleteProject(id, token).subscribe({
-        next: (res) => {
-          this.isDeletingProject = false;
-          if (res.success) {
-            // อัปเดต UI ให้หายไปทันทีโดยไม่ต้องรอโหลดใหม่
-            this.projects = this.projects.filter(p => p.id !== id);
-            // โหลดใหม่เผื่อความชัวร์ (เป็น background)
-            this.loadProjects();
-          } else {
-            alert(res.message || 'Failed to delete project');
-          }
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.isDeletingProject = false;
-          alert(err.error?.message || 'Failed to delete project');
-          this.cdr.detectChanges();
+  closeDeleteConfirmModal(): void {
+    this.isDeleteConfirmModalOpen = false;
+    this.projectToDeleteId = null;
+  }
+
+  /**
+   * ดำเนินการลบโปรเจกต์ที่เลือกลงฐานข้อมูลผ่าน API
+   */
+  confirmDeleteProject(): void {
+    if (this.isDeletingProject || !this.projectToDeleteId) return;
+    
+    this.isDeletingProject = true;
+    const id = this.projectToDeleteId;
+    const token = this.authService.getToken();
+    
+    this.backendApi.deleteProject(id, token).subscribe({
+      next: (res) => {
+        this.isDeletingProject = false;
+        this.closeDeleteConfirmModal();
+        if (res.success) {
+          // อัปเดต UI ให้หายไปทันทีโดยไม่ต้องรอโหลดใหม่
+          this.projects = this.projects.filter(p => p.id !== id);
+          // โหลดใหม่เผื่อความชัวร์ (เป็น background)
+          this.loadProjects();
+        } else {
+          this.errorMessage = res.message || 'Failed to delete project';
+          this.isErrorModalOpen = true;
         }
-      });
-    }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isDeletingProject = false;
+        this.closeDeleteConfirmModal();
+        this.errorMessage = err.error?.message || 'Failed to delete project';
+        this.isErrorModalOpen = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   openEditProfileModal(user: any): void {
