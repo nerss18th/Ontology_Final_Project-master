@@ -89,7 +89,7 @@
             class="invalid-feedback d-flex align-items-center mt-1 ps-1">
             <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
             <span *ngIf="signupForm.get('password')?.hasError('required')">กรุณาใส่รหัสผ่าน</span>
-            <span *ngIf="!signupForm.get('password')?.hasError('required') && signupForm.get('password')?.hasError('pattern')">รหัสผ่านต้องเป็นตัวอักษรภาษาอังกฤษและตัวเลขเท่านั้น (ต้องมีทั้งคู่)</span>
+            <span *ngIf="!signupForm.get('password')?.hasError('required') && signupForm.get('password')?.hasError('pattern')">รหัสผ่านต้องเป็น a-z,A-Z และตัวเลข (ต้องมีทั้งคู่)</span>
             <span *ngIf="!signupForm.get('password')?.hasError('required') && !signupForm.get('password')?.hasError('pattern') && signupForm.get('password')?.hasError('minlength')">กรุณาใส่รหัสผ่านอย่างน้อย 8 ตัวอักษรขึ้นไป</span>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { BackendApiService } from '../../services/backend-api.service';
 import { Observable } from 'rxjs';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AdminUsers } from '../admin/admin-users/admin-users';
 import { AdminUserProjects } from '../admin/admin-user-projects/admin-user-projects';
 
@@ -53,6 +53,7 @@ export class Dashboard implements OnInit {
     private authService: AuthService,
     private backendApi: BackendApiService,
     private route: ActivatedRoute,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {
     this.currentUser$ = this.authService.currentUser$;
@@ -97,6 +98,11 @@ export class Dashboard implements OnInit {
    */
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      fragment: tab === 'profile' ? 'my-profile' : ''
+    });
   }
 
   viewUserProjects(userId: string | number) {
