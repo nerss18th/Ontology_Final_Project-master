@@ -6,7 +6,7 @@ import { BackendApiService } from './backend-api.service';
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user?: { id?: number; email: string; name?: string; username?: string; phone?: string; plan?: string | null; pic?: string | null; description?: string | null; role?: string };
+  user?: { id?: number; email: string; name?: string; username?: string; phone?: string; plan?: string | null; pic?: string | null; description?: string | null; role?: string; receipt?: string | null };
   token?: string;
 }
 
@@ -27,16 +27,17 @@ export class AuthService {
     pic?: string | null;
     description?: string | null;
     role?: string;
+    receipt?: string | null;
   } | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private apiService: BackendApiService) {
-    const savedUser = sessionStorage.getItem(this.CURRENT_USER_KEY);
+    const savedUser = localStorage.getItem(this.CURRENT_USER_KEY);
     if (savedUser) {
       try {
         this.currentUserSubject.next(JSON.parse(savedUser));
       } catch (e) {
-        sessionStorage.removeItem(this.CURRENT_USER_KEY);
+        localStorage.removeItem(this.CURRENT_USER_KEY);
       }
     }
   }
@@ -55,9 +56,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.user) {
           if (res.token) {
-            sessionStorage.setItem(this.TOKEN_KEY, res.token);
+            localStorage.setItem(this.TOKEN_KEY, res.token);
           }
-          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
           this.currentUserSubject.next(res.user);
         }
       }),
@@ -82,9 +83,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.user) {
           if (res.token) {
-            sessionStorage.setItem(this.TOKEN_KEY, res.token);
+            localStorage.setItem(this.TOKEN_KEY, res.token);
           }
-          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(res.user));
           this.currentUserSubject.next(res.user);
         }
       }),
@@ -99,8 +100,8 @@ export class AuthService {
    * ออกจากระบบ
    */
   logout(): void {
-    sessionStorage.removeItem(this.CURRENT_USER_KEY);
-    sessionStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.CURRENT_USER_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
     this.currentUserSubject.next(null);
   }
 
@@ -115,7 +116,7 @@ export class AuthService {
    * ดึง Token ปัจจุบัน
    */
   getToken(): string | null {
-    return sessionStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   /**
@@ -132,7 +133,7 @@ export class AuthService {
       map((res) => {
         if (res.success) {
           const updated = { ...currentUser, plan: planName };
-          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
           return true;
         }
@@ -141,7 +142,7 @@ export class AuthService {
       catchError(() => {
         // Fallback local update if offline
         const updated = { ...currentUser, plan: planName };
-        sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
         this.currentUserSubject.next(updated);
         return of(true);
       })
@@ -179,14 +180,14 @@ export class AuthService {
             phone: res.user.phone,
             description: res.user.description
           };
-          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
         }
       }),
       catchError(() => {
         // Fallback local update if offline
         const updated = { ...currentUser, email: email || currentUser.email, name, phone, description };
-        sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+        localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
         this.currentUserSubject.next(updated);
         return of({ success: true, message: 'อัปเดตข้อมูลเรียบร้อยแล้ว (ออฟไลน์)', user: updated });
       })
@@ -213,12 +214,42 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.imagePath) {
           const updated = { ...currentUser, pic: res.imagePath };
-          sessionStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
           this.currentUserSubject.next(updated);
         }
       }),
       catchError((err) => {
         const errorMsg = err.error?.message || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
+        return of({ success: false, message: errorMsg });
+      })
+    );
+  }
+  /**
+   * อัปโหลดสลิปการชำระเงิน
+   */
+  uploadReceipt(file: File): Observable<{ success: boolean; message: string; receiptPath?: string }> {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) return of({ success: false, message: 'ไม่พบผู้ใช้งาน' });
+
+    const token = this.getToken();
+    const formData = new FormData();
+    formData.append('receipt', file);
+
+    return this.apiService.postUploadReceipt(formData, token).pipe(
+      map((res) => ({
+        success: res.success,
+        message: res.message || 'อัปโหลดสลิปสำเร็จ',
+        receiptPath: res.receiptPath
+      })),
+      tap((res) => {
+        if (res.success && res.receiptPath) {
+          const updated = { ...currentUser, receipt: res.receiptPath };
+          localStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(updated));
+          this.currentUserSubject.next(updated);
+        }
+      }),
+      catchError((err) => {
+        const errorMsg = err.error?.message || 'เกิดข้อผิดพลาดในการอัปโหลดสลิป';
         return of({ success: false, message: errorMsg });
       })
     );

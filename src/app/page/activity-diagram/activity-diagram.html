@@ -129,7 +129,7 @@
               <div class="row g-3">
                 <div class="col-12 col-md-6">
                   <label class="form-label fw-semibold small">Reference (from Use Case diagram)</label>
-                  <select class="form-select" [(ngModel)]="selectedDiagramForEdit.useCaseRef" name="useCaseRef">
+                  <select class="form-select" multiple [(ngModel)]="selectedDiagramForEdit.useCaseRefArray" name="useCaseRefArray" style="height: 100px;">
                     <option value="">-- เลือก Use Case --</option>
                     <option *ngFor="let uc of useCaseOptions" [value]="uc">{{ uc }}</option>
                   </select>

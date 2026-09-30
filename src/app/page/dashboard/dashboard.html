@@ -97,7 +97,7 @@
         <!-- ข้อมูลส่วนตัว (My Profile) -->
         <ng-container *ngIf="activeTab === 'profile'">
           <!-- การ์ดแสดงส่วนหัวของโปรไฟล์ (รองรับทุกขนาดหน้าจอ) -->
-          <div id="my-profile" class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden">
+          <div class="card border border-light-subtle shadow-sm rounded-4 overflow-hidden">
             <div
               class="bg-gradient-header position-relative d-flex align-items-start align-items-sm-end justify-content-center justify-content-sm-start px-3 px-sm-4 px-lg-5 pt-3 pb-sm-4"
               style="height: 140px">
@@ -201,6 +201,53 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- สลิปการชำระเงิน -->
+                <div class="col-12">
+                  <div class="p-3 bg-light rounded-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <div class="text-secondary small fw-medium mb-1" style="font-size: 12px">
+                          สลิปการชำระเงิน
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                          <span *ngIf="user.receipt"
+                            class="badge bg-success-subtle text-success rounded-pill fw-semibold"
+                            style="font-size: 11px; padding: 3px 10px;">
+                            <span class="material-symbols-outlined align-middle" style="font-size: 12px;">check_circle</span>
+                            อัปโหลดแล้ว
+                          </span>
+                          <span *ngIf="!user.receipt" class="fw-bold text-secondary" style="font-size: 14px;">-</span>
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center gap-2">
+                        <!-- ปุ่ม View (แสดงเมื่อมีสลิป) -->
+                        <a *ngIf="user.receipt"
+                          [href]="'http://localhost:3000' + user.receipt"
+                          target="_blank"
+                          class="btn btn-outline-secondary btn-sm rounded-3 d-inline-flex align-items-center gap-1 fw-semibold"
+                          style="font-size: 12px;"
+                          id="viewReceiptBtn">
+                          <span class="material-symbols-outlined" style="font-size: 15px;">visibility</span>
+                          View
+                        </a>
+                        <!-- ปุ่ม Edit / Upload -->
+                        <button
+                          class="btn btn-sm rounded-3 d-inline-flex align-items-center gap-1 fw-semibold"
+                          [class.btn-outline-primary]="user.receipt"
+                          [class.btn-primary]="!user.receipt"
+                          style="font-size: 12px;"
+                          id="editReceiptBtn"
+                          (click)="openReceiptUploadModal()">
+                          <span class="material-symbols-outlined" style="font-size: 15px;">
+                            {{ user.receipt ? 'edit' : 'cloud_upload' }}
+                          </span>
+                          {{ user.receipt ? 'Edit' : 'Upload' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -214,6 +261,7 @@
               </p>
             </div>
           </div>
+
         </ng-container>
 
         <!-- User Management (Admin Only) -->
@@ -488,3 +536,86 @@
     </div>
   </div>
 </div>
+
+<!-- Backdrop สำหรับ Receipt Upload Modal -->
+<div *ngIf="isReceiptUploadModalOpen" class="modal-backdrop fade show" (click)="closeReceiptUploadModal()"></div>
+
+<!-- Modal อัปโหลดสลิปการชำระเงิน (Profile) -->
+<div *ngIf="isReceiptUploadModalOpen" class="modal d-block" tabindex="-1" role="dialog"
+  aria-labelledby="dashReceiptModalTitle">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+      <!-- Header -->
+      <div class="modal-header px-4 py-3 border-bottom"
+        style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0 text-white" id="dashReceiptModalTitle">
+          <span class="material-symbols-outlined" style="font-size: 26px;">receipt_long</span>
+          อัปโหลดสลิปการชำระเงิน
+        </h5>
+        <button type="button" class="btn-close btn-close-white" aria-label="Close"
+          (click)="closeReceiptUploadModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4">
+        <!-- Preview รูปสลิป -->
+        <div class="d-flex flex-column align-items-center mb-3">
+          <div *ngIf="selectedReceiptPreview"
+            class="mb-3 rounded-3 overflow-hidden border shadow-sm"
+            style="max-width: 280px; max-height: 300px;">
+            <img [src]="selectedReceiptPreview" class="w-100 h-100 object-fit-contain"
+              alt="Receipt Preview" style="max-height: 300px;" />
+          </div>
+
+          <!-- PDF placeholder -->
+          <div *ngIf="selectedReceiptFile && !selectedReceiptPreview"
+            class="mb-3 d-flex flex-column align-items-center justify-content-center rounded-3 border bg-light"
+            style="width: 200px; height: 140px;">
+            <span class="material-symbols-outlined text-danger" style="font-size: 48px;">picture_as_pdf</span>
+            <small class="text-secondary mt-1 text-center px-2" style="font-size: 12px; word-break: break-all;">
+              {{ selectedReceiptFile.name }}
+            </small>
+          </div>
+
+          <!-- Zone อัปโหลด -->
+          <label for="dashReceiptFileInput"
+            class="d-flex flex-column align-items-center justify-content-center rounded-3 border gap-2 w-100"
+            style="cursor: pointer; padding: 20px; border-color: #a5b4fc !important; background: #fafafe; border-style: dashed !important;"
+            [class.border-primary]="selectedReceiptFile">
+            <span class="material-symbols-outlined text-primary" style="font-size: 36px;">cloud_upload</span>
+            <span class="fw-semibold text-primary" style="font-size: 14px;">
+              {{ selectedReceiptFile ? 'เปลี่ยนไฟล์สลิป' : 'คลิกเพื่อเลือกสลิป' }}
+            </span>
+            <span class="text-secondary" style="font-size: 12px;">JPG, PNG, PDF · สูงสุด 10 MB</span>
+            <input id="dashReceiptFileInput" type="file" class="d-none"
+              accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+              (change)="onReceiptFileSelected($event)" />
+          </label>
+        </div>
+
+        <!-- แสดง error -->
+        <div *ngIf="receiptUploadError" class="alert alert-danger py-2 px-3 rounded-3 small mb-0">
+          <span class="material-symbols-outlined align-middle me-1" style="font-size: 16px;">error</span>
+          {{ receiptUploadError }}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
+        <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
+          (click)="closeReceiptUploadModal()" [disabled]="isUploadingReceipt">
+          ยกเลิก
+        </button>
+        <button type="button"
+          class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
+          id="confirmUploadReceiptBtn"
+          (click)="uploadReceipt()"
+          [disabled]="!selectedReceiptFile || isUploadingReceipt">
+          <span *ngIf="!isUploadingReceipt" class="material-symbols-outlined fs-6">upload</span>
+          <span *ngIf="isUploadingReceipt" class="spinner-border spinner-border-sm" role="status"></span>
+          {{ isUploadingReceipt ? 'กำลังอัปโหลด...' : 'บันทึกสลิป' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

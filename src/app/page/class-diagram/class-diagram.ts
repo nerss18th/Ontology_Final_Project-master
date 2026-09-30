@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, ViewChild, ElementRef, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BackendApiService } from '../../services/backend-api.service';
@@ -39,6 +39,7 @@ export interface MethodItem {
 export interface ClassItem {
   id: string;
   reference?: string;
+  referenceArray?: string[];
   name: string;
   type: string;
   description: string;
@@ -56,7 +57,7 @@ export interface ClassItem {
   templateUrl: './class-diagram.html',
   styleUrl: './class-diagram.css',
 })
-export class ClassDiagram implements OnInit {
+export class ClassDiagram implements OnInit, OnChanges {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   @Input() projectId!: string | number;
@@ -105,6 +106,14 @@ export class ClassDiagram implements OnInit {
     this.loadClasses();
     this.loadDiagramMetadata();
     this.loadUseCases();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectId'] && !changes['projectId'].firstChange && this.projectId) {
+      this.loadClasses();
+      this.loadDiagramMetadata();
+      this.loadUseCases();
+    }
   }
 
   loadUseCases(): void {
@@ -184,11 +193,20 @@ export class ClassDiagram implements OnInit {
 
   openAddClassModal(): void {
     this.isEditMode = false;
-    const nextNum = this.classItems.length + 1;
+    let nextNum = 1;
+    // ดึง ID ทั้งหมดที่มีอยู่มาแปลงเป็นตัวเลข แล้วเรียงลำดับจากน้อยไปมาก
+    const existingIds = this.classItems.map(item => parseInt(item.id.replace('CL-', ''), 10)).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    // วนลูปเช็คว่ามีตัวเลขไหนหายไปบ้าง (Smart ID Generator) ถ้าเจอก็ใช้เลขนั้น
+    for (const id of existingIds) {
+      if (id === nextNum) {
+        nextNum++;
+      }
+    }
     const padded = nextNum < 10 ? `0${nextNum}` : `${nextNum}`;
     this.newClassItem = {
       id: `CL-${padded}`,
-      reference: 'None',
+      reference: '',
+      referenceArray: [],
       name: '',
       type: 'Class',
       description: '',
@@ -204,6 +222,8 @@ export class ClassDiagram implements OnInit {
   openEditClassModal(item: ClassItem): void {
     this.isEditMode = true;
     this.newClassItem = JSON.parse(JSON.stringify(item));
+    // แยกข้อความที่มีจุลภาคคั่น (เช่น "UC-01, UC-02") ให้เป็น Array ของ String เพื่่อแสดงผลบน `<select multiple>`
+    this.newClassItem.referenceArray = this.newClassItem.reference && this.newClassItem.reference !== 'None' ? this.newClassItem.reference.split(',').map(r => r.trim()).filter(r => r !== '') : [];
     this.isAddClassModalOpen = true;
   }
 
@@ -283,6 +303,12 @@ export class ClassDiagram implements OnInit {
       return;
     }
 
+    // นำ Array ที่ได้จากการเลือกผ่าน `<select multiple>` มารวมกลับเป็น String ขั้นด้วยจุลภาค
+    if (this.newClassItem.referenceArray && this.newClassItem.referenceArray.length > 0) {
+      this.newClassItem.reference = this.newClassItem.referenceArray.join(', ');
+    } else {
+      this.newClassItem.reference = '';
+    }
     const payload = JSON.parse(JSON.stringify(this.newClassItem));
     this.backendApi.saveClass(this.projectId, payload, this.token).subscribe({
       next: (res) => {
@@ -295,6 +321,12 @@ export class ClassDiagram implements OnInit {
           } else {
             this.classItems.push(payload);
           }
+          // เรียงลำดับ Class ตามตัวเลขใน ID ใหม่ทันทีหลังจากกด Save (Real-time sorting)
+          this.classItems.sort((a, b) => {
+            const numA = parseInt(a.id.replace('CL-', ''), 10);
+            const numB = parseInt(b.id.replace('CL-', ''), 10);
+            return (isNaN(numA) ? 0 : numA) - (isNaN(numB) ? 0 : numB);
+          });
           this.cdr.detectChanges();
           this.closeAddClassModal();
         } else {

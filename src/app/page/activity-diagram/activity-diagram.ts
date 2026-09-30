@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild, ChangeDetectorRef, Input } from '@angular/core';
+import { Component, ElementRef, OnInit, OnChanges, SimpleChanges, ViewChild, ChangeDetectorRef, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BackendApiService } from '../../services/backend-api.service';
@@ -57,6 +57,7 @@ export interface ActivityDiagramItem {
   activityId: string;
   activityName: string;
   useCaseRef: string;
+  useCaseRefArray?: string[];
   preliminaryActivityId: string;
   description: string;
   imagePath: string | null;
@@ -76,7 +77,7 @@ export interface ActivityDiagramItem {
   templateUrl: './activity-diagram.html',
   styleUrl: './activity-diagram.css',
 })
-export class ActivityDiagram implements OnInit {
+export class ActivityDiagram implements OnInit, OnChanges {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   @Input() projectId!: string | number;
@@ -109,15 +110,17 @@ export class ActivityDiagram implements OnInit {
   ngOnInit(): void {
     this.token = this.authService.getToken();
 
-    this.route.parent?.params.subscribe((params) => {
-      if (params['id']) {
-        this.projectId = Number(params['id']) || 1;
-      }
-    });
-
     this.loadUseCases();
     this.loadActivityDiagrams();
     this.loadDiagramMetadata();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectId'] && !changes['projectId'].firstChange && this.projectId) {
+      this.loadUseCases();
+      this.loadActivityDiagrams();
+      this.loadDiagramMetadata();
+    }
   }
 
   loadDiagramMetadata(): void {
@@ -141,6 +144,7 @@ export class ActivityDiagram implements OnInit {
       activityId: activityIdStr,
       activityName: '',
       useCaseRef: '',
+      useCaseRefArray: [],
       preliminaryActivityId: '',
       description: '',
       imagePath: null,
@@ -203,7 +207,15 @@ export class ActivityDiagram implements OnInit {
   // Modal Handlers
   openAddModal(): void {
     this.isEditMode = false;
-    const nextNum = this.activityDiagrams.length + 1;
+    let nextNum = 1;
+    // ดึง ID ทั้งหมดที่มีอยู่มาแปลงเป็นตัวเลข แล้วเรียงลำดับจากน้อยไปมาก
+    const existingIds = this.activityDiagrams.map(item => parseInt(item.activityId.replace('ACT-', ''), 10)).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    // วนลูปเช็คว่ามีตัวเลขไหนหายไปบ้าง (Smart ID Generator) ถ้าเจอก็ใช้เลขนั้น
+    for (const id of existingIds) {
+      if (id === nextNum) {
+        nextNum++;
+      }
+    }
     const padded = nextNum < 10 ? `0${nextNum}` : `${nextNum}`;
     this.selectedDiagramForEdit = this.createEmptyDiagram(`ACT-${padded}`);
     this.isAddModalOpen = true;
@@ -212,6 +224,10 @@ export class ActivityDiagram implements OnInit {
   openEditModal(item: ActivityDiagramItem): void {
     this.isEditMode = true;
     this.selectedDiagramForEdit = JSON.parse(JSON.stringify(item));
+    if (this.selectedDiagramForEdit) {
+      // แยกข้อความที่มีจุลภาคคั่น (เช่น "UC-01, UC-02") ให้เป็น Array ของ String เพื่่อแสดงผลบน `<select multiple>`
+      this.selectedDiagramForEdit.useCaseRefArray = this.selectedDiagramForEdit.useCaseRef ? this.selectedDiagramForEdit.useCaseRef.split(',').map((r: string) => r.trim()).filter((r: string) => r !== '') : [];
+    }
     this.isAddModalOpen = true;
   }
 
@@ -413,6 +429,13 @@ export class ActivityDiagram implements OnInit {
       return;
     }
 
+    // นำ Array ที่ได้จากการเลือกผ่าน `<select multiple>` มารวมกลับเป็น String ขั้นด้วยจุลภาค
+    if (this.selectedDiagramForEdit.useCaseRefArray && this.selectedDiagramForEdit.useCaseRefArray.length > 0) {
+      this.selectedDiagramForEdit.useCaseRef = this.selectedDiagramForEdit.useCaseRefArray.join(', ');
+    } else {
+      this.selectedDiagramForEdit.useCaseRef = '';
+    }
+
     const payload = this.selectedDiagramForEdit;
     this.isSaving = true;
 
@@ -431,6 +454,12 @@ export class ActivityDiagram implements OnInit {
           } else {
             this.activityDiagrams.push({ ...payload });
           }
+          // เรียงลำดับ Activity Diagram ตามตัวเลขใน ID ใหม่ทันทีหลังจากกด Save (Real-time sorting)
+          this.activityDiagrams.sort((a, b) => {
+            const numA = parseInt(a.activityId.replace('ACT-', ''), 10);
+            const numB = parseInt(b.activityId.replace('ACT-', ''), 10);
+            return (isNaN(numA) ? 0 : numA) - (isNaN(numB) ? 0 : numB);
+          });
           this.cdr.detectChanges();
           this.closeAddModal();
         } else {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, ViewChild, ElementRef, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BackendApiService } from '../../services/backend-api.service';
@@ -19,7 +19,7 @@ export interface UseCase {
   templateUrl: './use-case-diagram.html',
   styleUrl: './use-case-diagram.css',
 })
-export class UseCaseDiagram implements OnInit {
+export class UseCaseDiagram implements OnInit, OnChanges {
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   @Input() projectId!: string | number;
@@ -52,14 +52,15 @@ export class UseCaseDiagram implements OnInit {
   ngOnInit(): void {
     this.token = this.authService.getToken();
 
-    this.route.parent?.params.subscribe((params) => {
-      if (params['id']) {
-        this.projectId = Number(params['id']) || 1;
-      }
-    });
-
     this.loadUseCases();
     this.loadDiagramMetadata();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectId'] && !changes['projectId'].firstChange && this.projectId) {
+      this.loadUseCases();
+      this.loadDiagramMetadata();
+    }
   }
 
   loadDiagramMetadata(): void {
@@ -96,7 +97,15 @@ export class UseCaseDiagram implements OnInit {
 
   openAddModal(): void {
     this.isEditMode = false;
-    const nextNum = this.useCases.length + 1;
+    let nextNum = 1;
+    // ดึง ID ทั้งหมดที่มีอยู่มาแปลงเป็นตัวเลข แล้วเรียงลำดับจากน้อยไปมาก
+    const existingIds = this.useCases.map(item => parseInt(item.id.replace('UC-', ''), 10)).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    // วนลูปเช็คว่ามีตัวเลขไหนหายไปบ้าง (Smart ID Generator) ถ้าเจอก็ใช้เลขนั้น
+    for (const id of existingIds) {
+      if (id === nextNum) {
+        nextNum++;
+      }
+    }
     const padded = nextNum < 10 ? `0${nextNum}` : `${nextNum}`;
     this.newUseCase = {
       id: `UC-${padded}`,
@@ -145,6 +154,12 @@ export class UseCaseDiagram implements OnInit {
           } else {
             this.useCases.push(payload);
           }
+          // เรียงลำดับ Use Cases ตามตัวเลขใน ID ใหม่ทันทีหลังจากกด Save (Real-time sorting)
+          this.useCases.sort((a, b) => {
+            const numA = parseInt(a.id.replace('UC-', ''), 10);
+            const numB = parseInt(b.id.replace('UC-', ''), 10);
+            return (isNaN(numA) ? 0 : numA) - (isNaN(numB) ? 0 : numB);
+          });
           this.cdr.detectChanges();
           this.closeAddModal();
         } else {

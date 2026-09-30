@@ -8,6 +8,7 @@ export interface ApiResponse<T = any> {
   user?: T;
   token?: string;
   imagePath?: string;
+  receiptPath?: string;
   [key: string]: any;
 }
 
@@ -56,6 +57,10 @@ export class BackendApiService {
 
   postUploadProfilePic(formData: FormData, token?: string | null): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.baseUrl}/users/upload-profile-pic`, formData, { headers: this.getHeaders(token) });
+  }
+
+  postUploadReceipt(formData: FormData, token?: string | null): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/users/upload-receipt`, formData, { headers: this.getHeaders(token) });
   }
 
   // ==========================================
@@ -185,6 +190,27 @@ export class BackendApiService {
     });
   }
 
+  getExportUseCasePdf(projectId: string | number, token?: string | null): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export-pdf/project/${projectId}/use-case`, {
+      headers: this.getHeaders(token),
+      responseType: 'blob'
+    });
+  }
+
+  getExportClassPdf(projectId: string | number, token?: string | null): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export-pdf/project/${projectId}/class-diagram`, {
+      headers: this.getHeaders(token),
+      responseType: 'blob'
+    });
+  }
+
+  getExportActivityPdf(projectId: string | number, token?: string | null): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export-pdf/project/${projectId}/activity-diagram`, {
+      headers: this.getHeaders(token),
+      responseType: 'blob'
+    });
+  }
+
   // ==========================================
   // ADMIN API ENDPOINTS
   // ==========================================
@@ -197,11 +223,27 @@ export class BackendApiService {
     return this.http.put<ApiResponse>(`${this.baseUrl}/admin/users/${id}/role`, { role }, { headers: this.getHeaders(token) });
   }
 
+  putAdminUserPlan(id: string | number, plan: string, token?: string | null): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.baseUrl}/admin/users/${id}/plan`, { plan }, { headers: this.getHeaders(token) });
+  }
+
   deleteAdminUser(id: string | number, token?: string | null): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.baseUrl}/admin/users/${id}`, { headers: this.getHeaders(token) });
   }
 
   getAdminUserProjects(id: string | number, token?: string | null): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.baseUrl}/admin/users/${id}/projects`, { headers: this.getHeaders(token) });
+  }
+
+  // ==========================================
+  // ONTOLOGY API ENDPOINTS
+  // ==========================================
+
+  getOntologyExport(projectId: string | number, token?: string | null): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/ontology/export/${projectId}`, { headers: this.getHeaders(token) });
+  }
+
+  getOntologyValidate(projectId: string | number, token?: string | null): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/ontology/validate/${projectId}`, { headers: this.getHeaders(token) });
   }
 }

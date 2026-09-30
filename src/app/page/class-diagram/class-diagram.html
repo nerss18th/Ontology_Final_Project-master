@@ -133,8 +133,8 @@
               <div class="row g-3">
                 <div class="col-12 col-md-4">
                   <label for="classReferenceSelect" class="form-label fw-semibold small">Reference</label>
-                  <select id="classReferenceSelect" class="form-select" [(ngModel)]="newClassItem.reference"
-                    name="classReference">
+                  <select id="classReferenceSelect" class="form-select" multiple [(ngModel)]="newClassItem.referenceArray"
+                    name="classReference" style="height: 100px;">
                     <option value="None">None</option>
                     <option *ngFor="let uc of useCaseItems" [value]="uc.id">{{ uc.id }} ({{ uc.caption || 'No Caption' }})</option>
                   </select>

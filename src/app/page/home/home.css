@@ -1,3 +1,8 @@
 @import "../../app.css";
 
 /* Add home component specific styles here */
+:host {
+  display: block;
+  background-color: #0d6efd;
+  min-height: 100vh;
+}

@@ -38,6 +38,14 @@ export class Dashboard implements OnInit {
   public selectedProfilePicPreview: string | null = null;
   public isSavingProfile = false;
 
+  // Receipt Upload Modal State
+  public isReceiptUploadModalOpen = false;
+  public selectedReceiptFile: File | null = null;
+  public selectedReceiptPreview: string | null = null;
+  public isUploadingReceipt = false;
+  public receiptUploadError = '';
+  public receiptUploadSuccess = '';
+
   public newProject: ProjectItem = {
     id: '',
     name: '',
@@ -294,6 +302,73 @@ export class Dashboard implements OnInit {
       error: () => {
         this.isSavingProfile = false;
         this.closeEditProfileModal();
+      }
+    });
+  }
+
+  // Receipt Upload Methods
+  openReceiptUploadModal(): void {
+    this.selectedReceiptFile = null;
+    this.selectedReceiptPreview = null;
+    this.receiptUploadError = '';
+    this.receiptUploadSuccess = '';
+    this.isReceiptUploadModalOpen = true;
+  }
+
+  closeReceiptUploadModal(): void {
+    this.isReceiptUploadModalOpen = false;
+  }
+
+  onReceiptFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      this.receiptUploadError = 'กรุณาอัปโหลดไฟล์รูปภาพ (JPG, PNG, GIF, WebP) หรือ PDF เท่านั้น';
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.receiptUploadError = 'ขนาดไฟล์เกิน 10 MB กรุณาเลือกไฟล์ใหม่';
+      event.target.value = '';
+      return;
+    }
+    this.receiptUploadError = '';
+    this.selectedReceiptFile = file;
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.selectedReceiptPreview = e.target.result;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      this.selectedReceiptPreview = null;
+    }
+  }
+
+  uploadReceipt(): void {
+    if (!this.selectedReceiptFile || this.isUploadingReceipt) return;
+    this.isUploadingReceipt = true;
+    this.receiptUploadError = '';
+    this.receiptUploadSuccess = '';
+
+    this.authService.uploadReceipt(this.selectedReceiptFile).subscribe({
+      next: (res) => {
+        this.isUploadingReceipt = false;
+        if (res.success) {
+          this.receiptUploadSuccess = 'อัปโหลดสลิปสำเร็จแล้ว';
+          this.closeReceiptUploadModal();
+        } else {
+          this.receiptUploadError = res.message || 'เกิดข้อผิดพลาดในการอัปโหลดสลิป';
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isUploadingReceipt = false;
+        this.receiptUploadError = err.error?.message || 'เกิดข้อผิดพลาดในการอัปโหลดสลิป';
+        this.cdr.detectChanges();
       }
     });
   }

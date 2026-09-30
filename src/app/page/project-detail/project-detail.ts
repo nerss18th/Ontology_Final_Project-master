@@ -37,7 +37,8 @@ interface TeamMember {
 })
 export class ProjectDetail implements OnInit, OnDestroy {
   // Navigation & Project State
-  public projectId: number = 1;
+  public projectId!: number;
+  public isProjectLoaded: boolean = false;
   public activeSection = 'overview';
   public projectName = '';
   public projectDetail = '';
@@ -73,6 +74,7 @@ export class ProjectDetail implements OnInit, OnDestroy {
     this.route.params.subscribe((params) => {
       if (params['id']) {
         this.projectId = params['id'];
+        this.isProjectLoaded = true;
         this.loadProjectDetails();
       }
     });
@@ -230,8 +232,47 @@ export class ProjectDetail implements OnInit, OnDestroy {
   // ==========================================
   // EXPORT METHODS
   // ==========================================
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  exportUseCasePdf(): void {
+    const token = this.authService.getToken();
+    const username = this.currentUser?.username || 'unknown';
+    this.backendApi.getExportUseCasePdf(this.projectId, token).subscribe({
+      next: (blob) => this.downloadBlob(blob, `useCase_${username}_${this.projectId}_${Date.now()}.pdf`),
+      error: () => alert('Failed to generate Use Case PDF')
+    });
+  }
+
+  exportClassPdf(): void {
+    const token = this.authService.getToken();
+    const username = this.currentUser?.username || 'unknown';
+    this.backendApi.getExportClassPdf(this.projectId, token).subscribe({
+      next: (blob) => this.downloadBlob(blob, `classDiagram_${username}_${this.projectId}_${Date.now()}.pdf`),
+      error: () => alert('Failed to generate Class PDF')
+    });
+  }
+
+  exportActivityPdf(): void {
+    const token = this.authService.getToken();
+    const username = this.currentUser?.username || 'unknown';
+    this.backendApi.getExportActivityPdf(this.projectId, token).subscribe({
+      next: (blob) => this.downloadBlob(blob, `activityDiagram_${username}_${this.projectId}_${Date.now()}.pdf`),
+      error: () => alert('Failed to generate Activity PDF')
+    });
+  }
+
   /**
-   * ดาวน์โหลด (Export) แผนภาพ Use Case ออกมาเป็นไฟล์เอกสาร Word
+   * ดาวน์โหลด (Export) แผนภาพ Use Case ออกมาเป็นไฟล์เอกสาร Word (Pro only)
    */
   exportUseCaseDoc(): void {
     const token = this.authService.getToken();
