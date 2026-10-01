@@ -231,6 +231,18 @@ export class ClassDiagram implements OnInit, OnChanges {
     this.isAddClassModalOpen = false;
   }
 
+  toggleClassReference(ucId: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (!this.newClassItem.referenceArray) this.newClassItem.referenceArray = [];
+    if (checked) {
+      if (!this.newClassItem.referenceArray.includes(ucId)) {
+        this.newClassItem.referenceArray.push(ucId);
+      }
+    } else {
+      this.newClassItem.referenceArray = this.newClassItem.referenceArray.filter(r => r !== ucId);
+    }
+  }
+
   onExtendToChange(): void {
     if (this.newClassItem.extendToClass === 'None' || !this.newClassItem.extendToClass) {
       this.newClassItem.extendToClassId = '';

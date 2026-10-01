@@ -129,10 +129,22 @@
               <div class="row g-3">
                 <div class="col-12 col-md-6">
                   <label class="form-label fw-semibold small">Reference (from Use Case diagram)</label>
-                  <select class="form-select" multiple [(ngModel)]="selectedDiagramForEdit.useCaseRefArray" name="useCaseRefArray" style="height: 100px;">
-                    <option value="">-- เลือก Use Case --</option>
-                    <option *ngFor="let uc of useCaseOptions" [value]="uc">{{ uc }}</option>
-                  </select>
+                  <!-- Checkbox list แทน select multiple — เลือกได้มากกว่า 1 รายการ -->
+                  <div class="border rounded-3 p-2" style="max-height: 120px; overflow-y: auto; background: #fff;">
+                    <div *ngIf="useCaseOptions.length === 0" class="text-muted small py-1 px-1">ไม่มี Use Case ในระบบ</div>
+                    <div *ngFor="let uc of useCaseOptions" class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox"
+                        [id]="'ref-act-' + uc"
+                        [checked]="selectedDiagramForEdit?.useCaseRefArray?.includes(uc)"
+                        (change)="toggleActivityReference(uc, $event)" />
+                      <label class="form-check-label small" [for]="'ref-act-' + uc">{{ uc }}</label>
+                    </div>
+                  </div>
+                  <!-- แสดง Tag ที่เลือก -->
+                  <div class="mt-1 d-flex flex-wrap gap-1" *ngIf="selectedDiagramForEdit?.useCaseRefArray && selectedDiagramForEdit!.useCaseRefArray!.length > 0">
+                    <span *ngFor="let ref of selectedDiagramForEdit!.useCaseRefArray" class="badge text-bg-primary">{{ ref }}</span>
+                  </div>
+                  <div class="mt-1 text-muted small" *ngIf="!selectedDiagramForEdit?.useCaseRefArray || selectedDiagramForEdit!.useCaseRefArray!.length === 0">ยังไม่ได้เลือก</div>
                 </div>
                 <div class="col-12 col-md-6">
                   <label class="form-label fw-semibold small">Activity ID (Auto)</label>

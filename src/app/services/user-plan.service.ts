@@ -31,6 +31,10 @@ export class UserPlanService {
    * Check if user can access team collaboration features
    */
   canAccessTeamMembers(user?: any): boolean {
+    const activeUser = user || this.getCurrentUserFromSession();
+    if (activeUser && activeUser.role === 'admin') {
+      return true; // Admin can always access team members
+    }
     return this.isProUser(user);
   }
 

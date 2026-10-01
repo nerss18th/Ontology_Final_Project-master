@@ -81,8 +81,28 @@ export class Overview implements OnInit, OnChanges {
     this.backendApi.getOntologyValidate(this.projectId, token).subscribe({
       next: (res) => {
         if (res.success && res.issues) {
-          this.validationIssues = res.issues;
-          this.semanticStats.warnings = res.issues.length;
+          this.validationIssues = res.issues.map((issue: any) => {
+            let el = issue.element || '';
+            let msg = issue.message || '';
+
+            // 1. เปลี่ยน se:realizes ให้เป็น reference
+            msg = msg.replace(/se:realizes/g, 'reference');
+            
+            // 2. ลบ prefix (เช่น project1:, se:) ออกจากรหัส
+            // โดยหาคำที่มีตัวอักษร/ตัวเลข/ขีดล่าง/ขีดกลาง นำหน้าและตามด้วย : 
+            el = el.replace(/[\w]+:([A-Za-z0-9_-]+)/g, '$1');
+            msg = msg.replace(/[\w]+:([A-Za-z0-9_-]+)/g, '$1');
+
+            // 3. ปรับรูปประโยค "อ้างอิงไปยัง reference ที่ไม่มีอยู่จริง: UC-01" เป็น "อ้างอิงไปยัง UC-01 ที่ไม่มีอยู่จริง"
+            msg = msg.replace(/อ้างอิงไปยัง reference ที่ไม่มีอยู่จริง:\s*(.+)/g, 'อ้างอิงไปยัง $1 ที่ไม่มีอยู่จริง');
+
+            return {
+              ...issue,
+              element: el,
+              message: msg
+            };
+          });
+          this.semanticStats.warnings = this.validationIssues.length;
         }
         checkDone();
       },
@@ -168,11 +188,21 @@ export class Overview implements OnInit, OnChanges {
     const processEntity = (entity: any) => {
       const realizesUc = entity['se:realizes'];
       let targets: string[] = [];
+      let hasMissing = false;
+      let hasValid = false;
+
       if (realizesUc) {
         const relArray = Array.isArray(realizesUc) ? realizesUc : [realizesUc];
         relArray.forEach((rel: any) => {
           const targetUc = useCases.find(uc => uc['@id'] === rel['@id']);
-          if (targetUc) targets.push(formatNode(targetUc));
+          if (targetUc) {
+            targets.push(formatNode(targetUc));
+            hasValid = true;
+          }
+          else {
+            targets.push(`<span class="text-danger fw-bold">[Missing] ${rel['@id'].split(':').pop()}</span>`);
+            hasMissing = true;
+          }
         });
       }
       let rowType = 'use-case';
@@ -183,8 +213,9 @@ export class Overview implements OnInit, OnChanges {
         idCol: formatNode(entity),
         refToCol: targets.length > 0 ? targets.join(', ') : '-',
         refByCol: '-', // Classes/Activities point to UCs, they aren't targeted
-        // ตรวจสอบว่าหลังจากทำ Reference ไปหาเป้าหมายแล้ว เป้าหมายนั้นยังมีตัวตนอยู่จริงๆ ไหม (ป้องกัน Dangling Reference)
-        statusCol: targets.length > 0 ? 'Valid' : 'Missing',
+        // ตรวจสอบว่ามี Missing target ไหม หรือถ้าไม่ได้ ref ใครเลย ก็เป็น Valid/Missing ขึ้นอยู่กับ requirement
+        // เดิมคือ targets.length > 0 ? 'Valid' : 'Missing'
+        statusCol: hasMissing ? 'Missing' : (targets.length > 0 ? 'Valid' : 'Missing'),
         // กำหนด Type ของแต่ละแถวเพื่อใช้เป็น Link สำหรับ Navigate ไปยังหน้า Diagram อื่นๆ
         type: rowType
       });
@@ -280,10 +311,23 @@ export class Overview implements OnInit, OnChanges {
       // ล็อค randomSeed ให้ค่าคงที่ เพื่อให้ทุกครั้งที่เปิดมากราฟจะอยู่ที่เดิม ไม่สลับซ้ายขวาไปมา
       layout: { randomSeed: 1337 }, 
       physics: { 
+        solver: 'barnesHut',
+        barnesHut: {
+          springLength: 150, // ลดความยาวของเส้นลงให้พอดี
+          nodeDistance: 120, // ลดระยะห่างผลักกันของแต่ละ node
+          avoidOverlap: 0.1
+        },
         // สั่งให้คำนวณ Physics ในฉากหลังให้เสร็จสมบูรณ์ก่อนที่จะเรนเดอร์กราฟออกมา เพื่อให้กราฟนิ่งตั้งแต่เริ่มต้น
         stabilization: { enabled: true, iterations: 200 } 
       },
-      edges: { color: '#000000', smooth: false } // Straight lines
+      edges: { 
+        color: '#000000', 
+        smooth: false,
+        font: { 
+          background: 'white', // ใส่พื้นหลังให้ตัวอักษรเพื่อไม่ให้เส้นตัดทับข้อความ
+          strokeWidth: 0
+        }
+      } 
     };
 
     new vis.Network(container, data, options);

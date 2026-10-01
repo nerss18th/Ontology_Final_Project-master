@@ -103,10 +103,10 @@
         </div>
       </div>
 
-      <!-- Module 1: Traceability Matrix Table -->
+      <!-- Module 1: Diagram References Table -->
       <div class="card mb-4 border-secondary border-opacity-25 shadow-sm">
         <div class="card-header bg-light fw-bold text-dark d-flex align-items-center gap-2">
-          <span class="material-symbols-outlined fs-5">table_chart</span> Traceability Matrix
+          <span class="material-symbols-outlined fs-5">table_chart</span> Diagram References
         </div>
         <div class="card-body p-0 table-responsive">
           <table class="table table-hover table-striped mb-0 align-middle">
@@ -126,8 +126,8 @@
                     {{ row.idCol }}
                   </a>
                 </td>
-                <td>{{ row.refToCol }}</td>
-                <td>{{ row.refByCol }}</td>
+                <td [innerHTML]="row.refToCol"></td>
+                <td [innerHTML]="row.refByCol"></td>
                 <td>
                   <span class="badge" [ngClass]="{
                           'text-bg-success': row.statusCol === 'Valid', 

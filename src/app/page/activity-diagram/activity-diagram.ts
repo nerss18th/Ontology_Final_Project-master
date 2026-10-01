@@ -231,6 +231,19 @@ export class ActivityDiagram implements OnInit, OnChanges {
     this.isAddModalOpen = true;
   }
 
+  toggleActivityReference(uc: string, event: Event): void {
+    if (!this.selectedDiagramForEdit) return;
+    const checked = (event.target as HTMLInputElement).checked;
+    if (!this.selectedDiagramForEdit.useCaseRefArray) this.selectedDiagramForEdit.useCaseRefArray = [];
+    if (checked) {
+      if (!this.selectedDiagramForEdit.useCaseRefArray.includes(uc)) {
+        this.selectedDiagramForEdit.useCaseRefArray.push(uc);
+      }
+    } else {
+      this.selectedDiagramForEdit.useCaseRefArray = this.selectedDiagramForEdit.useCaseRefArray.filter(r => r !== uc);
+    }
+  }
+
   closeAddModal(): void {
     this.isAddModalOpen = false;
     this.selectedDiagramForEdit = null;

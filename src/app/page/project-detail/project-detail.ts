@@ -45,6 +45,7 @@ export class ProjectDetail implements OnInit, OnDestroy {
 
   // Project Edit Modal State
   public isEditProjectModalOpen = false;
+  public isOwner: boolean = false;
   public editProjectName = '';
   public editProjectDetail = '';
 
@@ -105,8 +106,15 @@ export class ProjectDetail implements OnInit, OnDestroy {
             email: m.email,
             name: m.name || m.email.split('@')[0],
             role: m.role
-          }));
-          const myMember = this.teamMembers.find(m => m.email === this.currentUser?.email || (m.id && m.id === this.currentUser?.id));
+          })).filter((m: any) => {
+            // ไม่ต้องแสดง admin (id: 999999 ที่แทรกมาจาก backend) 
+            if (m.id === 999999) return false;
+            // ซ่อนตัวเองด้วยถ้าเราเป็น admin ระบบ
+            if (this.currentUser?.role === 'admin' && m.email === this.currentUser.email) return false;
+            return true;
+          });
+          const myMember = this.teamMembers.find((m: any) => m.email === this.currentUser?.email || (m.id && m.id === this.currentUser?.id));
+          this.isOwner = myMember ? myMember.role === 'Owner' : false;
           this.isViewer = false;
         }
         this.cdr.detectChanges();

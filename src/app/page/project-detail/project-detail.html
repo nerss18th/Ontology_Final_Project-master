@@ -96,31 +96,31 @@
             <label for="editProjectNameInput" class="form-label fw-semibold small">Project Name <span
                 class="text-danger">*</span></label>
             <input id="editProjectNameInput" type="text" class="form-control" [(ngModel)]="editProjectName"
-              name="editProjectName" required />
+              name="editProjectName" required [disabled]="!isOwner" />
           </div>
           <div class="mb-3">
             <label for="editProjectDetailInput" class="form-label fw-semibold small">Detail / Description</label>
             <textarea id="editProjectDetailInput" class="form-control" rows="3" [(ngModel)]="editProjectDetail"
-              name="editProjectDetail"></textarea>
+              name="editProjectDetail" [disabled]="!isOwner"></textarea>
           </div>
 
           <!-- ส่วนของการจัดการสมาชิกในทีม (สำหรับแพ็กเกจ Pro) -->
           <hr class="my-4" />
 
-          <div *ngIf="isProUser">
+          <div *ngIf="isProUser || !isOwner">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <div class="d-flex align-items-center gap-2">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                   <span class="material-symbols-outlined text-primary">group_add</span>
                   Team Members
                 </h6>
-                <span class="badge text-bg-primary rounded-pill px-2 py-1 small fw-bold">PRO</span>
+                <span *ngIf="isProUser" class="badge text-bg-primary rounded-pill px-2 py-1 small fw-bold">PRO</span>
                 <span class="badge text-bg-light border text-secondary">{{ teamMembers.length }} Members</span>
               </div>
             </div>
 
             <!-- ฟอร์มสำหรับเชิญสมาชิกใหม่ -->
-            <div class="card bg-body-tertiary border-0 p-3 mb-3 rounded-3" *ngIf="!isViewer">
+            <div class="card bg-body-tertiary border-0 p-3 mb-3 rounded-3" *ngIf="isProUser && !isViewer">
               <label class="form-label fw-semibold small mb-2">Invite New Member to Project</label>
               <div class="row g-2">
                 <div class="col-12 col-sm-8">
@@ -161,7 +161,7 @@
                   }">
                     {{ member.role }}
                   </span>
-                  <button *ngIf="member.role !== 'Owner' && !isViewer" type="button"
+                  <button *ngIf="isProUser && member.role !== 'Owner' && !isViewer" type="button"
                     class="btn btn-sm btn-light text-danger icon-button p-1 border-0 d-flex align-items-center justify-content-center rounded-circle"
                     (click)="removeTeamMember(member)">
                     <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
@@ -171,8 +171,8 @@
             </div>
           </div>
 
-          <!-- แจ้งเตือนการล็อกฟีเจอร์ (สำหรับผู้ใช้ที่ไม่ใช่ Pro) -->
-          <div *ngIf="!isProUser" class="card border-0 bg-primary-subtle p-3 rounded-3">
+          <!-- แจ้งเตือนการล็อกฟีเจอร์ (สำหรับผู้ใช้ที่ไม่ใช่ Pro และเป็นเจ้าของ) -->
+          <div *ngIf="!isProUser && isOwner" class="card border-0 bg-primary-subtle p-3 rounded-3 mt-4">
             <div class="d-flex align-items-start gap-3">
               <span class="material-symbols-outlined text-primary fs-4 mt-1">workspace_premium</span>
               <div class="flex-grow-1">
@@ -195,7 +195,7 @@
         <div class="modal-footer bg-body-tertiary px-4 py-3 border-top gap-2">
           <button type="button" class="btn btn-outline-secondary px-4 fw-semibold rounded-3"
             (click)="closeEditProjectModal()">Cancel</button>
-          <button type="submit"
+          <button *ngIf="isOwner" type="submit"
             class="btn btn-primary px-4 fw-semibold rounded-3 d-inline-flex align-items-center gap-2"
             [disabled]="!editProjectName.trim()">
             <span class="material-symbols-outlined fs-6">check</span>Save Changes

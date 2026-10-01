@@ -132,12 +132,25 @@
             <div class="card-body p-3">
               <div class="row g-3">
                 <div class="col-12 col-md-4">
-                  <label for="classReferenceSelect" class="form-label fw-semibold small">Reference</label>
-                  <select id="classReferenceSelect" class="form-select" multiple [(ngModel)]="newClassItem.referenceArray"
-                    name="classReference" style="height: 100px;">
-                    <option value="None">None</option>
-                    <option *ngFor="let uc of useCaseItems" [value]="uc.id">{{ uc.id }} ({{ uc.caption || 'No Caption' }})</option>
-                  </select>
+                  <label class="form-label fw-semibold small">Reference (Use Case)</label>
+                  <!-- Checkbox list แทน select multiple — เลือกได้มากกว่า 1 รายการ -->
+                  <div class="border rounded-3 p-2" style="max-height: 120px; overflow-y: auto; background: #fff;">
+                    <div *ngIf="useCaseItems.length === 0" class="text-muted small py-1 px-1">ไม่มี Use Case ในระบบ</div>
+                    <div *ngFor="let uc of useCaseItems" class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox"
+                        [id]="'ref-cls-' + uc.id"
+                        [checked]="newClassItem.referenceArray?.includes(uc.id)"
+                        (change)="toggleClassReference(uc.id, $event)" />
+                      <label class="form-check-label small" [for]="'ref-cls-' + uc.id">
+                        {{ uc.id }} ({{ uc.caption || 'No Caption' }})
+                      </label>
+                    </div>
+                  </div>
+                  <!-- แสดง Tag ที่เลือก -->
+                  <div class="mt-1 d-flex flex-wrap gap-1" *ngIf="newClassItem.referenceArray && newClassItem.referenceArray.length > 0">
+                    <span *ngFor="let ref of newClassItem.referenceArray" class="badge text-bg-primary">{{ ref }}</span>
+                  </div>
+                  <div class="mt-1 text-muted small" *ngIf="!newClassItem.referenceArray || newClassItem.referenceArray.length === 0">ยังไม่ได้เลือก</div>
                 </div>
                 <div class="col-12 col-md-4">
                   <label for="classIdInput" class="form-label fw-semibold small">Class ID (Auto)</label>
