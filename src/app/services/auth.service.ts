@@ -43,6 +43,26 @@ export class AuthService {
   }
 
   /**
+   * ส่ง OTP ไปยังอีเมล
+   */
+  sendOtp(email: string): Observable<{ success: boolean; message: string; verificationToken?: string }> {
+    return this.apiService.postSendOtp(email).pipe(
+      map((res: any) => ({ success: true, message: 'ส่ง OTP สำเร็จ', verificationToken: res.verificationToken })),
+      catchError((err: any) => of({ success: false, message: err.error?.error || 'ส่ง OTP ไม่สำเร็จ' }))
+    );
+  }
+
+  /**
+   * ยืนยัน OTP
+   */
+  verifyOtp(verificationToken: string, otp: string): Observable<{ success: boolean; message: string; email?: string }> {
+    return this.apiService.postVerifyOtp(verificationToken, otp).pipe(
+      map((res: any) => ({ success: true, message: 'ยืนยัน OTP สำเร็จ', email: res.email })),
+      catchError((err: any) => of({ success: false, message: err.error?.error || 'ยืนยัน OTP ไม่สำเร็จ' }))
+    );
+  }
+
+  /**
    * สมัครสมาชิกใหม่
    */
   signUp(email: string, password: string, name: string, username?: string): Observable<AuthResponse> {

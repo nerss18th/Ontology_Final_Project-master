@@ -58,19 +58,48 @@
           </div>
         </div>
 
-        <!-- ช่องกรอก Email -->
+        <!-- ช่องกรอก Email และปุ่ม Send OTP -->
         <div>
-          <div class="form-floating">
-            <input type="email" class="form-control custom-input" [class.is-invalid]="
-                signupForm.get('email')?.invalid && signupForm.get('email')?.touched
-              " id="email" placeholder="name@company.com" formControlName="email" />
-            <label for="email" class="text-secondary">Email Address</label>
+          <div class="d-flex gap-2">
+            <div class="form-floating flex-grow-1">
+              <input type="email" class="form-control custom-input" [class.is-invalid]="
+                  signupForm.get('email')?.invalid && signupForm.get('email')?.touched
+                " id="email" placeholder="name@company.com" formControlName="email" />
+              <label for="email" class="text-secondary">Email Address</label>
+            </div>
+            <button type="button" class="btn btn-outline-primary px-3" style="white-space: nowrap;"
+              (click)="sendOtp()" [disabled]="signupForm.get('email')?.invalid || isSendingOtp || otpSent">
+              <span *ngIf="isSendingOtp" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              {{ isSendingOtp ? 'Sending...' : (otpSent ? 'OTP Sent' : 'Send OTP') }}
+            </button>
           </div>
           <div *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
-            class="invalid-feedback d-flex align-items-center mt-1 ps-1">
-            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            class="invalid-feedback d-block mt-1 ps-1">
+            <span class="material-symbols-outlined me-1 align-middle" style="font-size: 16px">error</span>
             <span *ngIf="signupForm.get('email')?.hasError('required')">กรุณาใส่ Email</span>
             <span *ngIf="!signupForm.get('email')?.hasError('required') && signupForm.get('email')?.hasError('email')">กรุณาใส่อีเมลให้ถูกต้อง</span>
+          </div>
+          <div class="small text-secondary mt-1 ps-1">
+            กรุณากรอกอีเมลและกดปุ่มเพื่อรับรหัส OTP
+          </div>
+        </div>
+
+        <!-- ช่องกรอก OTP (แสดงหลังจากส่ง OTP แล้ว) -->
+        <div *ngIf="otpSent" class="animate__animated animate__fadeIn">
+          <div class="form-floating">
+            <input type="text" class="form-control custom-input" [class.is-invalid]="
+                signupForm.get('otp')?.invalid && signupForm.get('otp')?.touched
+              " id="otp" placeholder="123456" formControlName="otp" maxlength="6" />
+            <label for="otp" class="text-secondary">OTP Code (6 Digits)</label>
+            <div class="small text-secondary mt-1 ps-1">
+              กรุณากรอกรหัส OTP 6 หลักที่ได้รับทางอีเมล
+            </div>
+          </div>
+          <div *ngIf="signupForm.get('otp')?.invalid && signupForm.get('otp')?.touched"
+            class="invalid-feedback d-flex align-items-center mt-1 ps-1">
+            <span class="material-symbols-outlined me-1" style="font-size: 16px">error</span>
+            <span *ngIf="signupForm.get('otp')?.hasError('required')">กรุณากรอกรหัส OTP</span>
+            <span *ngIf="!signupForm.get('otp')?.hasError('required') && signupForm.get('otp')?.hasError('pattern')">รหัส OTP ต้องเป็นตัวเลข 6 หลัก</span>
           </div>
         </div>
 

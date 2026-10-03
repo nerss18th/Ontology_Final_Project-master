@@ -35,6 +35,14 @@ export class BackendApiService {
   // USER API ENDPOINTS
   // ==========================================
 
+  postSendOtp(email: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/auth/send-otp`, { email });
+  }
+
+  postVerifyOtp(verificationToken: string, otp: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/auth/verify-otp`, { verificationToken, otp });
+  }
+
   postSignUp(data: { email: string; password: string; name: string; username?: string }): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.baseUrl}/users/signup`, data);
   }
