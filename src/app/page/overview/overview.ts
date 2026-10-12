@@ -29,6 +29,14 @@ export class Overview implements OnInit, OnChanges {
   public traceabilityMatrix: any[] = [];
   public semanticStats = { fullyRealized: 0, warnings: 0 };
 
+  // Edge click info panel
+  public selectedEdgeInfo: { label: string; from: string; to: string; color: string } | null = null;
+
+  // Node click info panel
+  public selectedNodeInfo: { id: string; name: string; type: string; typeColor: string; typeLabel: string; description?: string } | null = null;
+
+
+
   constructor(
     private authService: AuthService,
     private backendApi: BackendApiService,
@@ -276,32 +284,73 @@ export class Overview implements OnInit, OnChanges {
           label: shortId,
           color: color,
           shape: shape,
-          title: `ID: ${shortId}\nName: ${labelName || '-'}\nType: ${typeName}`
+          title: `ID: ${shortId}\nName: ${labelName || '-'}\nType: ${typeName}`,
+          // เก็บข้อมูลเพิ่มเติมสำหรับ click panel
+          nodeType: node['@type'],
+          shortId: shortId,
+          labelName: labelName,
+          typeName: typeName,
+          rawNode: node
         });
 
+        // เส้น "references" (Class/Activity → UseCase)
         if (node['se:realizes']) {
           const relArray = Array.isArray(node['se:realizes']) ? node['se:realizes'] : [node['se:realizes']];
           relArray.forEach((rel: any) => {
             edges.push({
+              id: `ref-${node['@id']}-${rel['@id']}`,
               from: node['@id'],
               to: rel['@id'],
-              label: 'references',
+              relLabel: 'references',
               arrows: 'to',
-              font: { align: 'middle' },
-              color: { color: '#000000' }
+              color: { color: '#000000' },
+              width: 1.5
+            });
+          });
+        }
+
+        // เส้น "extends" (Class → Parent Class) — เส้นทึบสีม่วง ลูกศรกลวง
+        if (node['@type'] === 'se:Class' && node['se:extends']) {
+          edges.push({
+            id: `ext-${node['@id']}`,
+            from: node['@id'],
+            to: node['se:extends']['@id'],
+            relLabel: 'extends',
+            arrows: { to: { enabled: true, type: 'triangle' } },
+            color: { color: '#7B2FBE' },
+            dashes: false,
+            width: 2
+          });
+        }
+
+        // เส้น "implements" (Class → Interface) — เส้นประสีแดงส้ม ลูกศรกลวง
+        if (node['@type'] === 'se:Class' && node['se:implementsInterface']) {
+          const implArray = Array.isArray(node['se:implementsInterface'])
+            ? node['se:implementsInterface']
+            : [node['se:implementsInterface']];
+          implArray.forEach((impl: any) => {
+            edges.push({
+              id: `impl-${node['@id']}-${impl['@id']}`,
+              from: node['@id'],
+              to: impl['@id'],
+              relLabel: 'implements',
+              arrows: { to: { enabled: true, type: 'triangle' } },
+              color: { color: '#0891B2' },
+              dashes: [6, 3],
+              width: 2
             });
           });
         }
         
         // Connect to its group node
         edges.push({
+          id: `isA-${node['@id']}`,
           from: node['@id'],
           to: groupNodeId,
+          relLabel: 'isA',
           arrows: '',
           color: { color: '#aaaaaa' },
-          dashes: true,
-          label: 'isA',
-          font: { size: 10, align: 'middle', color: '#888888' }
+          dashes: true
         });
       }
     });
@@ -309,28 +358,115 @@ export class Overview implements OnInit, OnChanges {
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
     const options = {
       // ล็อค randomSeed ให้ค่าคงที่ เพื่อให้ทุกครั้งที่เปิดมากราฟจะอยู่ที่เดิม ไม่สลับซ้ายขวาไปมา
-      layout: { randomSeed: 1337 }, 
-      physics: { 
+      layout: { randomSeed: 1337 },
+      physics: {
         solver: 'barnesHut',
         barnesHut: {
-          springLength: 150, // ลดความยาวของเส้นลงให้พอดี
-          nodeDistance: 120, // ลดระยะห่างผลักกันของแต่ละ node
+          springLength: 150,
+          nodeDistance: 120,
           avoidOverlap: 0.1
         },
         // สั่งให้คำนวณ Physics ในฉากหลังให้เสร็จสมบูรณ์ก่อนที่จะเรนเดอร์กราฟออกมา เพื่อให้กราฟนิ่งตั้งแต่เริ่มต้น
-        stabilization: { enabled: true, iterations: 200 } 
+        stabilization: { enabled: true, iterations: 200 }
       },
-      edges: { 
-        color: '#000000', 
+      edges: {
+        color: '#000000',
         smooth: false,
-        font: { 
-          background: 'white', // ใส่พื้นหลังให้ตัวอักษรเพื่อไม่ให้เส้นตัดทับข้อความ
-          strokeWidth: 0
-        }
-      } 
+        // ปิด label บน edge ทั้งหมด
+        font: { size: 0 },
+        selectionWidth: 3
+      },
+      interaction: {
+        hover: true,
+        selectConnectedEdges: false
+      }
     };
 
-    new vis.Network(container, data, options);
+    const network = new vis.Network(container, data, options);
+
+    // ---- Click handler: Node หรือ Edge ----
+    network.on('click', (params: any) => {
+      // --- คลิ๊ก Node ---
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        const nodeData = nodes.find((n: any) => n.id === nodeId);
+        // เปิด edge panel
+        this.selectedEdgeInfo = null;
+
+        if (!nodeData || !nodeData.nodeType) {
+          // เป็น group hub / root ไม่ต้องแสดง detail
+          this.selectedNodeInfo = null;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const typeColorMap: any = {
+          'se:UseCase':        { color: '#15803D', label: 'Use Case' },
+          'se:Class':          { color: '#1D4ED8', label: 'Class' },
+          'se:ActivityDiagram':{ color: '#B45309', label: 'Activity' }
+        };
+        const typeInfo = typeColorMap[nodeData.nodeType] || { color: '#555', label: nodeData.typeName };
+
+        // หา description จาก ontologyGraph หรือ data เพิ่มเติม
+        const raw = nodeData.rawNode;
+        const desc = raw['rdfs:comment'] || raw['se:description'] || '';
+
+        this.selectedNodeInfo = {
+          id:        nodeData.shortId,
+          name:      nodeData.labelName || nodeData.shortId,
+          type:      nodeData.nodeType,
+          typeColor: typeInfo.color,
+          typeLabel: typeInfo.label,
+          description: desc
+        };
+        this.cdr.detectChanges();
+        return;
+      }
+
+      // --- คลิ๊ก Edge ---
+      if (params.edges.length > 0) {
+        const edgeId = params.edges[0];
+        const edgeData = edges.find((e: any) => e.id === edgeId);
+        if (!edgeData) return;
+        // เปิด node panel
+        this.selectedNodeInfo = null;
+
+        const fromNode  = nodes.find((n: any) => n.id === edgeData.from);
+        const toNode    = nodes.find((n: any) => n.id === edgeData.to);
+        const fromLabel = fromNode?.label?.replace('\n', ' ') || edgeData.from;
+        const toLabel   = toNode?.label?.replace('\n', ' ')   || edgeData.to;
+
+        const relLabel = edgeData.relLabel || 'connected';
+        const colorMap: any = {
+          references: '#1E293B',
+          extends:    '#7B2FBE',
+          implements: '#0891B2',
+          isA:        '#888888'
+        };
+
+        this.selectedEdgeInfo = {
+          label: relLabel,
+          from:  fromLabel,
+          to:    toLabel,
+          color: colorMap[relLabel] || '#555'
+        };
+        this.cdr.detectChanges();
+        return;
+      }
+
+      // --- คลิ๊กที่ว่าง → ปิดทั้งคู่ ---
+      this.selectedEdgeInfo = null;
+      this.selectedNodeInfo = null;
+      this.cdr.detectChanges();
+    });
+  }
+
+  closeEdgeInfo(): void {
+    this.selectedEdgeInfo = null;
+  }
+
+  closeNodeInfo(): void {
+    this.selectedNodeInfo = null;
   }
 
   goToSection(section: string): void {
