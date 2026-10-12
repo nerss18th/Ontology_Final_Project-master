@@ -46,6 +46,7 @@ import { AuthService } from '../../../services/auth.service';
                   <th class="py-3 text-secondary fw-semibold" style="font-size: 12px; letter-spacing: 0.05em;">EMAIL</th>
                   <th class="py-3 text-secondary fw-semibold" style="font-size: 12px; letter-spacing: 0.05em;">PLAN</th>
                   <th class="py-3 text-secondary fw-semibold" style="font-size: 12px; letter-spacing: 0.05em;">ROLE</th>
+                  <th class="py-3 text-center text-secondary fw-semibold" style="font-size: 12px; letter-spacing: 0.05em;">สลิป</th>
                   <th class="text-end pe-4 py-3 text-secondary fw-semibold" style="font-size: 12px; letter-spacing: 0.05em;">จัดการ</th>
                 </tr>
               </thead>
@@ -76,6 +77,19 @@ import { AuthService } from '../../../services/auth.service';
                       [ngClass]="user.role === 'admin' ? 'text-bg-primary' : 'bg-light text-dark border'"
                       style="font-size: 11px;">
                       {{ user.role | uppercase }}
+                    </span>
+                  </td>
+                  <td class="py-3 text-center">
+                    <button *ngIf="user.receipt"
+                      class="btn btn-sm btn-outline-success rounded-3 d-inline-flex align-items-center gap-1 fw-semibold"
+                      style="font-size: 12px; padding: 4px 10px;"
+                      (click)="openReceiptModal(user)"
+                      title="ดูสลิปการชำระเงิน">
+                      <span class="material-symbols-outlined" style="font-size: 16px;">receipt_long</span>
+                      ดูสลิป
+                    </button>
+                    <span *ngIf="!user.receipt" class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size: 11px;">
+                      ไม่มีสลิป
                     </span>
                   </td>
                   <td class="text-end pe-4 py-3">
@@ -111,7 +125,7 @@ import { AuthService } from '../../../services/auth.service';
                   </td>
                 </tr>
                 <tr *ngIf="filteredUsers.length === 0">
-                  <td colspan="6" class="text-center py-5 text-muted">
+                  <td colspan="7" class="text-center py-5 text-muted">
                     <span class="material-symbols-outlined d-block mb-2" style="font-size: 36px; opacity: 0.3;">manage_accounts</span>
                     ไม่พบข้อมูลผู้ใช้งาน
                   </td>
@@ -226,6 +240,89 @@ import { AuthService } from '../../../services/auth.service';
         </div>
       </div>
     </div>
+
+    <!-- Backdrop สำหรับ View Receipt Modal -->
+    <div *ngIf="isReceiptModalOpen" class="modal-backdrop fade show" style="z-index: 1040;" (click)="closeReceiptModal()"></div>
+
+    <!-- Modal ดูสลิปการชำระเงิน -->
+    <div *ngIf="isReceiptModalOpen" class="modal d-block" tabindex="-1" role="dialog"
+      aria-labelledby="viewReceiptModalTitle" style="z-index: 1050;">
+      <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()" style="max-width: 480px;">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+          <!-- Header -->
+          <div class="modal-header px-4 py-3 border-bottom text-white"
+            style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+            <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0" id="viewReceiptModalTitle">
+              <span class="material-symbols-outlined" style="font-size: 24px;">receipt_long</span>
+              สลิปการชำระเงิน
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeReceiptModal()"></button>
+          </div>
+
+          <!-- Body -->
+          <div class="modal-body p-4" *ngIf="selectedReceiptUser">
+            <!-- ข้อมูล User -->
+            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-3"
+              style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+              <div>
+                <div class="fw-semibold text-dark" style="font-size: 14px;">
+                  {{ selectedReceiptUser.username || selectedReceiptUser.name }}
+                </div>
+                <div class="text-secondary" style="font-size: 12px;">{{ selectedReceiptUser.email }}</div>
+              </div>
+              <span class="badge rounded-pill px-3 py-1 fw-semibold"
+                [ngClass]="{
+                  'text-bg-warning': selectedReceiptUser.plan === 'Pro',
+                  'text-bg-secondary': selectedReceiptUser.plan === 'Standard',
+                  'text-bg-dark': selectedReceiptUser.plan === 'Admin'
+                }"
+                style="font-size: 11px;">
+                Plan: {{ selectedReceiptUser.plan }}
+              </span>
+            </div>
+
+            <!-- รูปสลิป -->
+            <div class="text-center p-2 rounded-3 border bg-light d-flex align-items-center justify-content-center"
+              style="min-height: 260px; max-height: 420px; overflow: hidden;">
+              <img [src]="'http://localhost:3000' + selectedReceiptUser.receipt"
+                alt="สลิปการชำระเงิน"
+                class="img-fluid rounded-2 object-fit-contain"
+                style="max-height: 400px; max-width: 100%; cursor: pointer;"
+                (click)="openFullReceiptImage('http://localhost:3000' + selectedReceiptUser.receipt)"
+                title="คลิกเพื่อเปิดภาพขนาดเต็ม" />
+            </div>
+            <small class="text-muted d-block text-center mt-2" style="font-size: 11px;">
+              คลิกที่รูป หรือกดปุ่มด้านล่างเพื่อเปิดดูภาพต้นฉบับในแท็บใหม่
+            </small>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer bg-body-tertiary px-4 py-3 border-top d-flex justify-content-between align-items-center">
+            <a [href]="'http://localhost:3000' + selectedReceiptUser?.receipt"
+              target="_blank"
+              class="btn btn-outline-success btn-sm rounded-3 d-inline-flex align-items-center gap-1 fw-semibold"
+              style="font-size: 13px;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+              เปิดดูภาพเต็ม
+            </a>
+            <div class="d-flex align-items-center gap-2">
+              <button *ngIf="selectedReceiptUser?.plan !== 'Pro' && selectedReceiptUser?.id !== currentUserId"
+                type="button"
+                class="btn btn-primary btn-sm px-3 fw-semibold rounded-3 d-inline-flex align-items-center gap-1"
+                style="font-size: 13px;"
+                (click)="changePlanFromReceipt(selectedReceiptUser)">
+                <span class="material-symbols-outlined" style="font-size: 16px;">workspace_premium</span>
+                เปลี่ยนเป็น Pro
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-semibold rounded-3"
+                (click)="closeReceiptModal()">
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   `
 })
 export class AdminUsers implements OnInit {
@@ -242,6 +339,10 @@ export class AdminUsers implements OnInit {
   editPlanUser: any = null;
   selectedPlan: 'Standard' | 'Pro' = 'Standard';
   isSavingPlan = false;
+
+  // View Receipt Modal State
+  isReceiptModalOpen = false;
+  selectedReceiptUser: any = null;
 
   get filteredUsers() {
     if (!this.searchQuery) return this.users;
@@ -296,6 +397,25 @@ export class AdminUsers implements OnInit {
   closeEditPlanModal() {
     this.isEditPlanModalOpen = false;
     this.editPlanUser = null;
+  }
+
+  openReceiptModal(user: any) {
+    this.selectedReceiptUser = user;
+    this.isReceiptModalOpen = true;
+  }
+
+  closeReceiptModal() {
+    this.isReceiptModalOpen = false;
+    this.selectedReceiptUser = null;
+  }
+
+  openFullReceiptImage(url: string) {
+    window.open(url, '_blank');
+  }
+
+  changePlanFromReceipt(user: any) {
+    this.closeReceiptModal();
+    this.openEditPlanModal(user);
   }
 
   confirmChangePlan() {

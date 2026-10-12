@@ -95,44 +95,55 @@ export class Promotion {
     const file = event.target.files[0];
     if (!file) return;
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-      this.receiptUploadError = 'กรุณาอัปโหลดไฟล์รูปภาพ (JPG, PNG, GIF, WebP) หรือ PDF เท่านั้น';
+    if (!file.type.startsWith('image/')) {
+      this.receiptUploadError = 'ไฟล์หลักฐานต้องเป็นรูปภาพเท่านั้น (JPG, PNG, GIF, WebP)';
+      this.selectedReceiptFile = null;
+      this.selectedReceiptPreview = null;
       event.target.value = '';
+      this.cdr.detectChanges();
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
       this.receiptUploadError = 'ขนาดไฟล์เกิน 10 MB กรุณาเลือกไฟล์ใหม่';
+      this.selectedReceiptFile = null;
+      this.selectedReceiptPreview = null;
       event.target.value = '';
+      this.cdr.detectChanges();
       return;
     }
 
     this.receiptUploadError = '';
     this.selectedReceiptFile = file;
 
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.selectedReceiptPreview = e.target.result;
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // PDF - show placeholder
-      this.selectedReceiptPreview = null;
-    }
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.selectedReceiptPreview = e.target.result;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
   }
 
   confirmReceiptUpload() {
     if (!this.selectedReceiptFile || this.isUploadingReceipt) return;
+
+    if (!this.selectedReceiptFile.type.startsWith('image/')) {
+      this.receiptUploadError = 'ไฟล์หลักฐานต้องเป็นรูปภาพเท่านั้น';
+      return;
+    }
+
     this.isUploadingReceipt = true;
     this.receiptUploadError = '';
 
-    // อัปโหลดสลิปก่อน
+    // อัปโหลดสลิป
     this.authService.uploadReceipt(this.selectedReceiptFile).subscribe({
       next: (uploadRes) => {
-        // ไม่ว่าสลิปจะสำเร็จหรือไม่ ให้อัปเดต plan ต่อ
+        if (!uploadRes.success) {
+          this.isUploadingReceipt = false;
+          this.receiptUploadError = uploadRes.message || 'เกิดข้อผิดพลาดในการอัปโหลดสลิป';
+          this.cdr.detectChanges();
+          return;
+        }
         this.updatePlanAndNavigate();
       },
       error: () => {

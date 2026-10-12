@@ -23,13 +23,13 @@
           <h5 class="fw-bold fs-6 mb-2 text-center">Contents</h5>
           <ul class="list-unstyled mb-0 small">
             <li class="mb-1"><a href="javascript:void(0)" (click)="scrollTo('semantic-insights')"
-                class="text-decoration-none">1. Ontology Overview</a></li>
+                class="text-decoration-none">Ontology Overview</a></li>
             <li class="mb-1"><a href="javascript:void(0)" (click)="scrollTo('use-case-entities')"
-                class="text-decoration-none">2. Use Case Entities</a></li>
+                class="text-decoration-none">Use Case Entities</a></li>
             <li class="mb-1"><a href="javascript:void(0)" (click)="scrollTo('class-entities')"
-                class="text-decoration-none">3. Class Entities</a></li>
+                class="text-decoration-none">Class Entities</a></li>
             <li class="mb-0"><a href="javascript:void(0)" (click)="scrollTo('activity-entities')"
-                class="text-decoration-none">4. Activity Entities</a></li>
+                class="text-decoration-none">Activity Entities</a></li>
           </ul>
         </div>
 
@@ -66,7 +66,7 @@
       <!-- ================= 1. Ontology Overview Modules ================= -->
       <h3 id="semantic-insights"
         class="wiki-subsection-title fw-bold fs-5 border-bottom border-primary pb-1 mb-3 text-primary">
-        <span class="material-symbols-outlined align-text-bottom">hub</span> 1. Ontology Overview
+        <span class="material-symbols-outlined align-text-bottom">hub</span> Ontology Overview
       </h3>
 
       <!-- Module 3: Semantic Badge & Warning (Summary) -->
@@ -119,6 +119,10 @@
               <span style="display:inline-block; width:28px; height:0; border-top: 2px dashed #0891B2;"></span>
               <span style="color:#0891B2;">implements</span>
             </span>
+            <span class="d-flex align-items-center gap-1">
+              <span style="display:inline-block; width:28px; height:0; border-top: 2px dashed #aaaaaa;"></span>
+              <span style="color:#777777;">isA</span>
+            </span>
             <span class="d-flex align-items-center gap-1 ms-2 border-start ps-3 text-muted fst-italic">
               <span class="material-symbols-outlined" style="font-size:14px;">touch_app</span>
               คลิ๊กที่เส้นเพื่อดูความสัมพันธ์
@@ -127,6 +131,15 @@
         </div>
         <div class="card-body p-0 position-relative">
           <div id="semantic-network" style="width: 100%; height: 450px; background-color: #f8f9fa;"></div>
+
+          <!-- Reset Focus to Ontology Button (มุมขวาบน) -->
+          <button type="button"
+            class="btn btn-sm btn-light bg-white border shadow-sm position-absolute top-0 end-0 m-3 d-flex align-items-center gap-1 px-3 py-1 text-secondary fw-semibold"
+            style="z-index: 5; border-radius: 8px; backdrop-filter: blur(4px); transition: all 0.2s ease;"
+            (click)="resetOntologyPosition()" title="Reset position to Ontology Node">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #ff7f50;">center_focus_strong</span>
+            <span>Reset Position</span>
+          </button>
 
           <!-- Edge Info Panel (แสดงเมื่อคลิ๊กเส้น) — มุมล่างซ้าย -->
           <div *ngIf="selectedEdgeInfo"
@@ -195,45 +208,189 @@
         </div>
       </div>
 
-      <!-- Module 1: Diagram References Table -->
+      <!-- Module 1: Diagram References Table (แยกเป็น 3 Diagram) -->
       <div class="card mb-4 border-secondary border-opacity-25 shadow-sm">
-        <div class="card-header bg-light fw-bold text-dark d-flex align-items-center gap-2">
-          <span class="material-symbols-outlined fs-5">table_chart</span> Diagram References
+        <div
+          class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined fs-5 text-primary">table_chart</span> Diagram References
+          </div>
+          <!-- Filter Tabs / Pills -->
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn fw-semibold" [class.btn-dark]="selectedRefDiagram === 'all'"
+              [class.btn-outline-secondary]="selectedRefDiagram !== 'all'" (click)="selectedRefDiagram = 'all'">
+              ทั้งหมด ({{ traceabilityMatrix.length }})
+            </button>
+            <button type="button" class="btn fw-semibold" [class.btn-success]="selectedRefDiagram === 'use-case'"
+              [class.btn-outline-success]="selectedRefDiagram !== 'use-case'" (click)="selectedRefDiagram = 'use-case'">
+              <span class="rounded-circle d-inline-block me-1"
+                style="width: 8px; height: 8px; background-color: #7BE141;"></span>
+              Use Case ({{ useCaseTraceList.length }})
+            </button>
+            <button type="button" class="btn fw-semibold" [class.btn-primary]="selectedRefDiagram === 'class'"
+              [class.btn-outline-primary]="selectedRefDiagram !== 'class'" (click)="selectedRefDiagram = 'class'">
+              <span class="rounded-circle d-inline-block me-1"
+                style="width: 8px; height: 8px; background-color: #97C2FC;"></span>
+              Class ({{ classTraceList.length }})
+            </button>
+            <button type="button" class="btn fw-semibold" [class.btn-warning]="selectedRefDiagram === 'activity'"
+              [class.btn-outline-warning]="selectedRefDiagram !== 'activity'" (click)="selectedRefDiagram = 'activity'">
+              <span class="rounded-circle d-inline-block me-1"
+                style="width: 8px; height: 8px; background-color: #FFC107;"></span>
+              Activity ({{ activityTraceList.length }})
+            </button>
+          </div>
         </div>
-        <div class="card-body p-0 table-responsive">
-          <table class="table table-hover table-striped mb-0 align-middle">
-            <thead class="table-dark small">
-              <tr>
-                <th style="width: 25%" class="ps-3">ID</th>
-                <th style="width: 25%">Reference To</th>
-                <th style="width: 30%">Referenced By</th>
-                <th style="width: 20%">Status / Validation</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of traceabilityMatrix">
-                <td class="fw-bold ps-3">
-                  <a (click)="goToSection(row.type)" style="cursor: pointer;"
-                    class="text-primary text-decoration-underline">
-                    {{ row.idCol }}
-                  </a>
-                </td>
-                <td [innerHTML]="row.refToCol"></td>
-                <td [innerHTML]="row.refByCol"></td>
-                <td>
-                  <span class="badge" [ngClass]="{
-                          'text-bg-success': row.statusCol === 'Valid', 
-                          'text-bg-danger': row.statusCol === 'Missing'
-                        }">
-                    {{ row.statusCol }}
-                  </span>
-                </td>
-              </tr>
-              <tr *ngIf="traceabilityMatrix.length === 0">
-                <td colspan="3" class="text-center text-muted py-4">No semantic trace data available.</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div class="card-body p-0">
+          <!-- 1. Use Case Diagram Table -->
+          <div *ngIf="selectedRefDiagram === 'all' || selectedRefDiagram === 'use-case'">
+            <div
+              class="px-3 py-2 bg-success bg-opacity-10 border-bottom border-top d-flex align-items-center justify-content-between">
+              <span class="fw-bold text-success d-flex align-items-center gap-1 small">
+                <span class="rounded-circle"
+                  style="background-color: #7BE141; width: 10px; height: 10px; display: inline-block;"></span>
+                Use Case Diagram
+              </span>
+              <span class="badge bg-success">{{ useCaseTraceList.length }} entities</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle ref-table">
+                <thead class="table-success small border-bottom thead-use-case">
+                  <tr>
+                    <th style="width: 40%" class="ps-3">Use Case ID</th>
+                    <th>Referenced By (Classes & Activities)</th>
+                    <th style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of useCaseTraceList">
+                    <td class="fw-bold ps-3">
+                      <a [href]="'/dashboard/project/' + projectId + '?section=use-case'" target="_blank"
+                        rel="noopener noreferrer" class="text-dark text-decoration-underline"
+                        title="เปิด Use Case Diagram ในแท็บใหม่">
+                        {{ row.idCol }}
+                      </a>
+                    </td>
+                    <td [innerHTML]="row.refByCol"></td>
+                    <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">
+                      <span class="badge" [ngClass]="{
+                              'text-bg-success': row.statusCol === 'Valid', 
+                              'text-bg-danger': row.statusCol === 'Missing'
+                            }">
+                        {{ row.statusCol }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="useCaseTraceList.length === 0">
+                    <td colspan="3" class="text-center text-muted py-3">No Use Case references found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 2. Class Diagram Table -->
+          <div *ngIf="selectedRefDiagram === 'all' || selectedRefDiagram === 'class'">
+            <div
+              class="px-3 py-2 bg-primary bg-opacity-10 border-bottom border-top d-flex align-items-center justify-content-between">
+              <span class="fw-bold text-primary d-flex align-items-center gap-1 small">
+                <span class="rounded-circle"
+                  style="background-color: #97C2FC; width: 10px; height: 10px; display: inline-block;"></span>
+                Class Diagram
+              </span>
+              <span class="badge bg-primary">{{ classTraceList.length }} entities</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle ref-table">
+                <thead class="table-primary small border-bottom thead-class">
+                  <tr>
+                    <th style="width: 28%" class="ps-3">Class ID</th>
+                    <th style="width: 24%">Reference To (Use Case)</th>
+                    <th style="width: 24%">Extends</th>
+                    <th>Implements</th>
+                    <th style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of classTraceList">
+                    <td class="fw-bold ps-3">
+                      <a [href]="'/dashboard/project/' + projectId + '?section=class'" target="_blank"
+                        rel="noopener noreferrer" class="text-dark text-decoration-underline"
+                        title="เปิด Class Diagram ในแท็บใหม่">
+                        {{ row.idCol }}
+                      </a>
+                    </td>
+                    <td [innerHTML]="row.refToCol"></td>
+                    <td [innerHTML]="row.extendsCol"></td>
+                    <td [innerHTML]="row.implementsCol"></td>
+                    <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">
+                      <span class="badge" [ngClass]="{
+                              'text-bg-success': row.statusCol === 'Valid', 
+                              'text-bg-danger': row.statusCol === 'Missing'
+                            }">
+                        {{ row.statusCol }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="classTraceList.length === 0">
+                    <td colspan="5" class="text-center text-muted py-3">No Class references found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Activity Diagram Table -->
+          <div *ngIf="selectedRefDiagram === 'all' || selectedRefDiagram === 'activity'">
+            <div
+              class="px-3 py-2 bg-warning bg-opacity-10 border-bottom border-top d-flex align-items-center justify-content-between">
+              <span class="fw-bold text-dark d-flex align-items-center gap-1 small">
+                <span class="rounded-circle"
+                  style="background-color: #FFC107; width: 10px; height: 10px; display: inline-block;"></span>
+                Activity Diagram
+              </span>
+              <span class="badge bg-warning text-dark">{{ activityTraceList.length }} entities</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle ref-table">
+                <thead class="table-warning small border-bottom thead-activity">
+                  <tr>
+                    <th style="width: 40%" class="ps-3">Activity ID</th>
+                    <th>Reference To (Use Case)</th>
+                    <th style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of activityTraceList">
+                    <td class="fw-bold ps-3">
+                      <a [href]="'/dashboard/project/' + projectId + '?section=activity'" target="_blank"
+                        rel="noopener noreferrer" class="text-dark text-decoration-underline"
+                        title="เปิด Activity Diagram ในแท็บใหม่">
+                        {{ row.idCol }}
+                      </a>
+                    </td>
+                    <td [innerHTML]="row.refToCol"></td>
+                    <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">
+                      <span class="badge" [ngClass]="{
+                              'text-bg-success': row.statusCol === 'Valid', 
+                              'text-bg-danger': row.statusCol === 'Missing'
+                            }">
+                        {{ row.statusCol }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="activityTraceList.length === 0">
+                    <td colspan="3" class="text-center text-muted py-3">No Activity diagram references found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div *ngIf="traceabilityMatrix.length === 0" class="text-center text-muted py-4">
+            No semantic trace data available.
+          </div>
         </div>
       </div>
 
@@ -262,7 +419,7 @@
 
       <!-- ส่วนของ Use Case -->
       <h3 id="use-case-entities"
-        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">2. Use
+        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">Use
         Case Entities</h3>
       <div class="wiki-entity-list mb-4">
         <div class="wiki-entity-item mb-3 ms-2" *ngFor="let uc of useCases">
@@ -281,7 +438,7 @@
 
       <!-- ส่วนของ Class -->
       <h3 id="class-entities"
-        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">3. Class
+        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">Class
         Entities</h3>
       <div class="wiki-entity-list mb-4">
         <div class="wiki-entity-item mb-3 ms-2" *ngFor="let cls of classes">
@@ -300,8 +457,8 @@
 
       <!-- ส่วนของ Activity Diagram -->
       <h3 id="activity-entities"
-        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">4.
-        Activity Entities</h3>
+        class="wiki-subsection-title fw-bold fs-5 border-bottom border-secondary border-opacity-25 pb-1 mb-3">Activity
+        Entities</h3>
       <div class="wiki-entity-list mb-4">
         <div class="wiki-entity-item mb-3 ms-2" *ngFor="let act of activityDiagrams">
           <div class="d-flex align-items-baseline gap-2 mb-1" (click)="openEntityModal('activity', act)"

@@ -35,6 +35,24 @@ export class Overview implements OnInit, OnChanges {
   // Node click info panel
   public selectedNodeInfo: { id: string; name: string; type: string; typeColor: string; typeLabel: string; description?: string } | null = null;
 
+  // vis.Network instance
+  public network: any = null;
+
+  // Diagram References filter tab
+  public selectedRefDiagram: 'all' | 'use-case' | 'class' | 'activity' = 'all';
+
+  get useCaseTraceList(): any[] {
+    return this.traceabilityMatrix.filter(r => r.type === 'use-case');
+  }
+
+  get classTraceList(): any[] {
+    return this.traceabilityMatrix.filter(r => r.type === 'class');
+  }
+
+  get activityTraceList(): any[] {
+    return this.traceabilityMatrix.filter(r => r.type === 'activity');
+  }
+
 
 
   constructor(
@@ -163,8 +181,20 @@ export class Overview implements OnInit, OnChanges {
     const formatNode = (node: any) => {
       const id = node['@id'].split(':').pop();
       const label = node['rdfs:label'] || '';
-      const typeLabel = node['@type'] === 'se:UseCase' ? '[UC]' : node['@type'] === 'se:Class' ? '[Class]' : '[Activity]';
-      return `${typeLabel} ${id} ${label}`.trim();
+      return `${id} ${label}`.trim();
+    };
+
+    const formatNodeLink = (node: any) => {
+      const id = node['@id'].split(':').pop();
+      const label = node['rdfs:label'] || '';
+      const text = `${id} ${label}`.trim();
+      let section = 'use-case';
+      if (node['@type'] === 'se:Class') {
+        section = 'class';
+      } else if (node['@type'] === 'se:ActivityDiagram') {
+        section = 'activity';
+      }
+      return `<a href="/dashboard/project/${this.projectId}?section=${section}" target="_blank" rel="noopener noreferrer" class="text-dark text-decoration-underline fw-semibold" style="color: #000000 !important;">${text}</a>`;
     };
 
     // 1. Process Use Cases
@@ -187,7 +217,7 @@ export class Overview implements OnInit, OnChanges {
       this.traceabilityMatrix.push({
         idCol: formatNode(uc),
         refToCol: '-', // Use Cases are targeted, they don't refer to others in this relation
-        refByCol: allRelated.length > 0 ? allRelated.map(n => formatNode(n)).join(', ') : '-',
+        refByCol: allRelated.length > 0 ? allRelated.map(n => formatNodeLink(n)).join(', ') : '-',
         statusCol: status,
         type: 'use-case'
       });
@@ -204,7 +234,7 @@ export class Overview implements OnInit, OnChanges {
         relArray.forEach((rel: any) => {
           const targetUc = useCases.find(uc => uc['@id'] === rel['@id']);
           if (targetUc) {
-            targets.push(formatNode(targetUc));
+            targets.push(formatNodeLink(targetUc));
             hasValid = true;
           }
           else {
@@ -217,12 +247,67 @@ export class Overview implements OnInit, OnChanges {
       if (entity['@type'] === 'se:Class') rowType = 'class';
       if (entity['@type'] === 'se:ActivityDiagram') rowType = 'activity';
       
+      let extendsCol = '-';
+      let implementsCol = '-';
+
+      if (entity['@type'] === 'se:Class') {
+        // Extends
+        if (entity['se:extends']) {
+          const extArray = Array.isArray(entity['se:extends']) ? entity['se:extends'] : [entity['se:extends']];
+          const extList = extArray.map((ext: any) => {
+            const targetCls = classes.find(c => c['@id'] === ext['@id']);
+            if (targetCls) return formatNodeLink(targetCls);
+            const short = ext['@id'].split(':').pop();
+            const fallback = this.classes.find(c => c.class_id === short || c.id === short);
+            if (fallback) {
+              const text = `${short} ${fallback.class_name || ''}`.trim();
+              return `<a href="/dashboard/project/${this.projectId}?section=class" target="_blank" rel="noopener noreferrer" class="text-dark text-decoration-underline fw-semibold" style="color: #000000 !important;">${text}</a>`;
+            }
+            return `<span class="text-danger fw-bold">[Missing] ${short}</span>`;
+          });
+          if (extList.length > 0) extendsCol = extList.join(', ');
+        }
+
+        // Implements
+        if (entity['se:implementsInterface']) {
+          const implArray = Array.isArray(entity['se:implementsInterface'])
+            ? entity['se:implementsInterface']
+            : [entity['se:implementsInterface']];
+          const implList = implArray.map((impl: any) => {
+            const targetCls = classes.find(c => c['@id'] === impl['@id']);
+            if (targetCls) return formatNodeLink(targetCls);
+            const short = impl['@id'].split(':').pop();
+            const fallback = this.classes.find(c => c.class_id === short || c.id === short);
+            if (fallback) {
+              const text = `${short} ${fallback.class_name || ''}`.trim();
+              return `<a href="/dashboard/project/${this.projectId}?section=class" target="_blank" rel="noopener noreferrer" class="text-dark text-decoration-underline fw-semibold" style="color: #000000 !important;">${text}</a>`;
+            }
+            return `<span class="text-danger fw-bold">[Missing] ${short}</span>`;
+          });
+          if (implList.length > 0) implementsCol = implList.join(', ');
+        }
+
+        // Fallback ไปยัง this.classes
+        const classObj = this.classes.find(c => c.id === entity['@id'].split(':').pop() || c.class_id === entity['@id'].split(':').pop());
+        if (extendsCol === '-' && classObj && classObj.extendToClass && classObj.extendToClass !== 'None') {
+          const text = `${classObj.extendToClassId ? classObj.extendToClassId + ' ' : ''}${classObj.extendToClass}`.trim();
+          extendsCol = `<a href="/dashboard/project/${this.projectId}?section=class" target="_blank" rel="noopener noreferrer" class="text-dark text-decoration-underline fw-semibold" style="color: #000000 !important;">${text}</a>`;
+        }
+        if (implementsCol === '-' && classObj && classObj.implementsInterfaces && classObj.implementsInterfaces.length > 0) {
+          implementsCol = classObj.implementsInterfaces.map((i: any) => {
+            const text = `${i.classId ? i.classId + ' ' : ''}${i.className}`.trim();
+            return `<a href="/dashboard/project/${this.projectId}?section=class" target="_blank" rel="noopener noreferrer" class="text-dark text-decoration-underline fw-semibold" style="color: #000000 !important;">${text}</a>`;
+          }).join(', ');
+        }
+      }
+
       this.traceabilityMatrix.push({
         idCol: formatNode(entity),
         refToCol: targets.length > 0 ? targets.join(', ') : '-',
         refByCol: '-', // Classes/Activities point to UCs, they aren't targeted
+        extendsCol: extendsCol,
+        implementsCol: implementsCol,
         // ตรวจสอบว่ามี Missing target ไหม หรือถ้าไม่ได้ ref ใครเลย ก็เป็น Valid/Missing ขึ้นอยู่กับ requirement
-        // เดิมคือ targets.length > 0 ? 'Valid' : 'Missing'
         statusCol: hasMissing ? 'Missing' : (targets.length > 0 ? 'Valid' : 'Missing'),
         // กำหนด Type ของแต่ละแถวเพื่อใช้เป็น Link สำหรับ Navigate ไปยังหน้า Diagram อื่นๆ
         type: rowType
@@ -243,17 +328,20 @@ export class Overview implements OnInit, OnChanges {
     if (!container || typeof vis === 'undefined' || this.ontologyGraph.length === 0) return;
 
     const nodes: any[] = [
-      // โหนดหลัก "Ontology" ที่เป็นศูนย์กลางของทุก Diagram
-      { id: 'MASTER_ONTOLOGY', label: 'Ontology', color: '#ff7f50', shape: 'circle', font: { size: 24, bold: true, color: '#ffffff' }, title: 'Ontology Root' },
-      { id: 'GROUP_UC', label: 'UC\nDiagram', color: '#7BE141', shape: 'circle', font: { size: 16, bold: true }, title: 'Use Case Diagram (Group)' },
-      { id: 'GROUP_CL', label: 'CL\nDiagram', color: '#97C2FC', shape: 'circle', font: { size: 16, bold: true }, title: 'Class Diagram (Group)' },
-      { id: 'GROUP_AC', label: 'AC\nDiagram', color: '#FFC107', shape: 'circle', font: { size: 16, bold: true }, title: 'Activity Diagram (Group)' }
+      // โหนดหลัก "Ontology" ที่เป็นศูนย์กลางของทุก Diagram (ตรึงไว้ที่จุดกึ่งกลาง + mass สูงเพื่อผลักไม่ให้โหนดอื่นลอยมาทับ)
+      { id: 'MASTER_ONTOLOGY', label: 'Ontology', color: '#ff7f50', shape: 'circle', font: { size: 24, bold: true, color: '#ffffff' }, title: 'Ontology Root', x: 0, y: 0, fixed: true, mass: 6 },
+      // กลุ่ม Use Case อยู่ขวาบน (ลดระยะลง 25%)
+      { id: 'GROUP_UC', label: 'UC\nDiagram', color: '#7BE141', shape: 'circle', font: { size: 16, bold: true }, title: 'Use Case Diagram (Group)', x: 285, y: -210, fixed: true, mass: 3 },
+      // กลุ่ม Class อยู่ซ้ายบน (ลดระยะลง 25%)
+      { id: 'GROUP_CL', label: 'CL\nDiagram', color: '#97C2FC', shape: 'circle', font: { size: 16, bold: true }, title: 'Class Diagram (Group)', x: -285, y: -210, fixed: true, mass: 3 },
+      // กลุ่ม Activity Diagram อยู่ด้านล่าง (ลดระยะลง 25%)
+      { id: 'GROUP_AC', label: 'AC\nDiagram', color: '#FFC107', shape: 'circle', font: { size: 16, bold: true }, title: 'Activity Diagram (Group)', x: 0, y: 340, fixed: true, mass: 3 }
     ];
     const edges: any[] = [
-      // เชื่อมโยงแต่ละ Diagram เข้ากับโหนดศูนย์กลาง MASTER_ONTOLOGY
-      { from: 'GROUP_UC', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50' }, dashes: true, width: 2 },
-      { from: 'GROUP_CL', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50' }, dashes: true, width: 2 },
-      { from: 'GROUP_AC', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50' }, dashes: true, width: 2 }
+      // เชื่อมโยงแต่ละ Diagram เข้ากับโหนดศูนย์กลาง MASTER_ONTOLOGY (ลดความยาวเส้นลง 25% เหลือ 340)
+      { from: 'GROUP_UC', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50', hover: '#b83b0a', highlight: '#b83b0a' }, dashes: true, width: 2, length: 340 },
+      { from: 'GROUP_CL', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50', hover: '#b83b0a', highlight: '#b83b0a' }, dashes: true, width: 2, length: 340 },
+      { from: 'GROUP_AC', to: 'MASTER_ONTOLOGY', color: { color: '#ff7f50', hover: '#b83b0a', highlight: '#b83b0a' }, dashes: true, width: 2, length: 340 }
     ];
 
     this.ontologyGraph.forEach(node => {
@@ -262,16 +350,28 @@ export class Overview implements OnInit, OnChanges {
         let shape = 'circle';
         let groupNodeId = 'GROUP_CL';
         
+        // กำหนดพิกัดเริ่มต้นให้อยู่โซนด้านนอกของแต่ละกลุ่ม เพื่อไม่ให้โหนดลอยเข้ามาทับเส้นแกนกลาง Ontology
+        let initX = 0;
+        let initY = 0;
+        if (node['@type'] === 'se:Class') {
+          initX = -380 - (Math.random() * 80);
+          initY = -260 - (Math.random() * 80);
+        }
+        
         if (node['@type'] === 'se:UseCase') { 
           color = '#7BE141'; 
           shape = 'circle'; 
           groupNodeId = 'GROUP_UC';
+          initX = 380 + (Math.random() * 80);
+          initY = -260 - (Math.random() * 80);
         } // green
         
         if (node['@type'] === 'se:ActivityDiagram') { 
           color = '#FFC107'; 
           shape = 'circle'; 
           groupNodeId = 'GROUP_AC';
+          initX = (Math.random() - 0.5) * 160;
+          initY = 440 + (Math.random() * 80);
         } // yellow
         
         const shortId = node['@id'].split(':').pop();
@@ -282,6 +382,8 @@ export class Overview implements OnInit, OnChanges {
         nodes.push({
           id: node['@id'],
           label: shortId,
+          x: initX,
+          y: initY,
           color: color,
           shape: shape,
           title: `ID: ${shortId}\nName: ${labelName || '-'}\nType: ${typeName}`,
@@ -303,7 +405,7 @@ export class Overview implements OnInit, OnChanges {
               to: rel['@id'],
               relLabel: 'references',
               arrows: 'to',
-              color: { color: '#000000' },
+              color: { color: '#475569', hover: '#0f172a', highlight: '#0f172a' },
               width: 1.5
             });
           });
@@ -317,7 +419,7 @@ export class Overview implements OnInit, OnChanges {
             to: node['se:extends']['@id'],
             relLabel: 'extends',
             arrows: { to: { enabled: true, type: 'triangle' } },
-            color: { color: '#7B2FBE' },
+            color: { color: '#7B2FBE', hover: '#3B0764', highlight: '#3B0764' },
             dashes: false,
             width: 2
           });
@@ -335,7 +437,7 @@ export class Overview implements OnInit, OnChanges {
               to: impl['@id'],
               relLabel: 'implements',
               arrows: { to: { enabled: true, type: 'triangle' } },
-              color: { color: '#0891B2' },
+              color: { color: '#0891B2', hover: '#0e4e5e', highlight: '#0e4e5e' },
               dashes: [6, 3],
               width: 2
             });
@@ -349,8 +451,9 @@ export class Overview implements OnInit, OnChanges {
           to: groupNodeId,
           relLabel: 'isA',
           arrows: '',
-          color: { color: '#aaaaaa' },
-          dashes: true
+          color: { color: '#aaaaaa', hover: '#444444', highlight: '#444444' },
+          dashes: true,
+          length: 90
         });
       }
     });
@@ -359,22 +462,31 @@ export class Overview implements OnInit, OnChanges {
     const options = {
       // ล็อค randomSeed ให้ค่าคงที่ เพื่อให้ทุกครั้งที่เปิดมากราฟจะอยู่ที่เดิม ไม่สลับซ้ายขวาไปมา
       layout: { randomSeed: 1337 },
+      nodes: {
+        chosen: {
+          node: true,
+          label: false // ไม่เปลี่ยนตัวอักษรเป็นตัวหนาเมื่อ hover หรือคลิกโหนด
+        }
+      },
       physics: {
         solver: 'barnesHut',
         barnesHut: {
-          springLength: 150,
+          gravitationalConstant: -3000,
+          centralGravity: 0.01,
+          springLength: 90,
+          springConstant: 0.05,
           nodeDistance: 120,
-          avoidOverlap: 0.1
+          avoidOverlap: 1
         },
         // สั่งให้คำนวณ Physics ในฉากหลังให้เสร็จสมบูรณ์ก่อนที่จะเรนเดอร์กราฟออกมา เพื่อให้กราฟนิ่งตั้งแต่เริ่มต้น
-        stabilization: { enabled: true, iterations: 200 }
+        stabilization: { enabled: true, iterations: 250 }
       },
       edges: {
-        color: '#000000',
         smooth: false,
         // ปิด label บน edge ทั้งหมด
         font: { size: 0 },
-        selectionWidth: 3
+        selectionWidth: 3,
+        hoverWidth: (width: number) => width + 1
       },
       interaction: {
         hover: true,
@@ -382,10 +494,18 @@ export class Overview implements OnInit, OnChanges {
       }
     };
 
-    const network = new vis.Network(container, data, options);
+    this.network = new vis.Network(container, data, options);
+
+    // ปิด Physics ทันทีหลังจากคำนวณตำแหน่งเริ่มต้นเสร็จ เพื่อไม่ให้มีแรงดึงดูดหรือสปริงเด้งเวลาลากขยับโหนด
+    this.network.once('stabilizationIterationsDone', () => {
+      this.network.setOptions({ physics: { enabled: false } });
+    });
+    this.network.once('stabilized', () => {
+      this.network.setOptions({ physics: { enabled: false } });
+    });
 
     // ---- Click handler: Node หรือ Edge ----
-    network.on('click', (params: any) => {
+    this.network.on('click', (params: any) => {
       // --- คลิ๊ก Node ---
       if (params.nodes.length > 0) {
         const nodeId = params.nodes[0];
@@ -467,6 +587,17 @@ export class Overview implements OnInit, OnChanges {
 
   closeNodeInfo(): void {
     this.selectedNodeInfo = null;
+  }
+
+  resetOntologyPosition(): void {
+    if (!this.network) return;
+    this.network.focus('MASTER_ONTOLOGY', {
+      scale: 0.95,
+      animation: {
+        duration: 800,
+        easingFunction: 'easeInOutQuad'
+      }
+    });
   }
 
   goToSection(section: string): void {

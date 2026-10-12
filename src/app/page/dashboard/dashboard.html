@@ -567,16 +567,6 @@
               alt="Receipt Preview" style="max-height: 300px;" />
           </div>
 
-          <!-- PDF placeholder -->
-          <div *ngIf="selectedReceiptFile && !selectedReceiptPreview"
-            class="mb-3 d-flex flex-column align-items-center justify-content-center rounded-3 border bg-light"
-            style="width: 200px; height: 140px;">
-            <span class="material-symbols-outlined text-danger" style="font-size: 48px;">picture_as_pdf</span>
-            <small class="text-secondary mt-1 text-center px-2" style="font-size: 12px; word-break: break-all;">
-              {{ selectedReceiptFile.name }}
-            </small>
-          </div>
-
           <!-- Zone อัปโหลด -->
           <label for="dashReceiptFileInput"
             class="d-flex flex-column align-items-center justify-content-center rounded-3 border gap-2 w-100"
@@ -586,9 +576,9 @@
             <span class="fw-semibold text-primary" style="font-size: 14px;">
               {{ selectedReceiptFile ? 'เปลี่ยนไฟล์สลิป' : 'คลิกเพื่อเลือกสลิป' }}
             </span>
-            <span class="text-secondary" style="font-size: 12px;">JPG, PNG, PDF · สูงสุด 10 MB</span>
+            <span class="text-secondary" style="font-size: 12px;">JPG, PNG, WEBP · สูงสุด 10 MB (เฉพาะรูปภาพ)</span>
             <input id="dashReceiptFileInput" type="file" class="d-none"
-              accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+              accept="image/jpeg,image/png,image/gif,image/webp"
               (change)="onReceiptFileSelected($event)" />
           </label>
         </div>

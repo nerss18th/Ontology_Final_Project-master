@@ -248,6 +248,10 @@ export class AuthService {
    * อัปโหลดสลิปการชำระเงิน
    */
   uploadReceipt(file: File): Observable<{ success: boolean; message: string; receiptPath?: string }> {
+    if (!file || !file.type.startsWith('image/')) {
+      return of({ success: false, message: 'ไฟล์หลักฐานต้องเป็นรูปภาพเท่านั้น' });
+    }
+
     const currentUser = this.currentUserSubject.value;
     if (!currentUser) return of({ success: false, message: 'ไม่พบผู้ใช้งาน' });
 

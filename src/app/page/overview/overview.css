@@ -17,3 +17,60 @@
 .wiki-badge {
   font-family: monospace;
 }
+
+/* Diagram References Tables */
+.ref-table {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.ref-table thead.thead-use-case th {
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+  border-bottom: 2px solid #7BE141 !important;
+  font-weight: 600;
+}
+
+.ref-table thead.thead-class th {
+  background-color: #cfe2ff !important;
+  color: #084298 !important;
+  border-bottom: 2px solid #97C2FC !important;
+  font-weight: 600;
+}
+
+.ref-table thead.thead-activity th {
+  background-color: #fff3cd !important;
+  color: #664d03 !important;
+  border-bottom: 2px solid #FFC107 !important;
+  font-weight: 600;
+}
+
+.ref-table tbody tr {
+  background-color: #ffffff !important;
+}
+
+.ref-table tbody tr td {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.ref-table.table-hover tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+.ref-table tbody td a {
+  color: #000000 !important;
+  text-decoration-color: #000000 !important;
+}
+
+.ref-table tbody td a:hover {
+  color: #000000 !important;
+  text-decoration-color: #000000 !important;
+  opacity: 0.75;
+}
+
+.ref-table tbody td .badge {
+  color: #ffffff !important;
+}
+
