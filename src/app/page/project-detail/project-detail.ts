@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { BackendApiService } from '../../services/backend-api.service';
 import { UserPlanService } from '../../services/user-plan.service';
@@ -63,6 +63,7 @@ export class ProjectDetail implements OnInit, OnDestroy {
     private backendApi: BackendApiService,
     private userPlanService: UserPlanService,
     private route: ActivatedRoute,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -77,12 +78,33 @@ export class ProjectDetail implements OnInit, OnDestroy {
         this.projectId = params['id'];
         this.isProjectLoaded = true;
         this.loadProjectDetails();
+
+        // ตรวจสอบ queryParams หรือ sessionStorage เพื่อกู้คืนหน้าที่เปิดค้างไว้ล่าสุดของโปรเจกต์นี้
+        const currentSection = this.route.snapshot.queryParams['section'];
+        if (currentSection) {
+          this.activeSection = currentSection;
+          sessionStorage.setItem(`project_active_section_${this.projectId}`, currentSection);
+        } else {
+          const savedSection = sessionStorage.getItem(`project_active_section_${this.projectId}`);
+          if (savedSection) {
+            this.activeSection = savedSection;
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { section: savedSection },
+              queryParamsHandling: 'merge',
+              replaceUrl: true,
+            });
+          }
+        }
       }
     });
 
     this.route.queryParams.subscribe((params) => {
       if (params['section']) {
         this.activeSection = params['section'];
+        if (this.projectId) {
+          sessionStorage.setItem(`project_active_section_${this.projectId}`, params['section']);
+        }
       }
     });
   }
@@ -131,6 +153,15 @@ export class ProjectDetail implements OnInit, OnDestroy {
 
   setActiveSection(section: string): void {
     this.activeSection = section;
+    if (this.projectId) {
+      sessionStorage.setItem(`project_active_section_${this.projectId}`, section);
+    }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { section },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   get activeDiagramTitle(): string {

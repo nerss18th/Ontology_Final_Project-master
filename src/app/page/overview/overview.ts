@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { BackendApiService } from '../../services/backend-api.service';
 
@@ -12,7 +12,7 @@ declare var vis: any;
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })
-export class Overview implements OnInit, OnChanges {
+export class Overview implements OnInit, OnChanges, OnDestroy {
   @Input() projectId!: any;
   @Input() projectName: string = 'Project 1';
   @Input() projectDetail: string = 'Example System';
@@ -22,6 +22,7 @@ export class Overview implements OnInit, OnChanges {
   public classes: any[] = [];
   public activityDiagrams: any[] = [];
   public isLoading = true;
+  public hasSavedPositions = false;
 
   // Semantic Data
   public ontologyGraph: any[] = [];
@@ -78,6 +79,10 @@ export class Overview implements OnInit, OnChanges {
     }
 
     this.isLoading = true;
+    if (this.projectId) {
+      const savedStr = localStorage.getItem(`ontology_graph_positions_${this.projectId}`);
+      this.hasSavedPositions = !!(savedStr && savedStr.length > 2);
+    }
     const token = this.authService.getToken();
     
     // Fetch all diagram types
@@ -304,12 +309,10 @@ export class Overview implements OnInit, OnChanges {
       this.traceabilityMatrix.push({
         idCol: formatNode(entity),
         refToCol: targets.length > 0 ? targets.join(', ') : '-',
-        refByCol: '-', // Classes/Activities point to UCs, they aren't targeted
+        refByCol: '-',
         extendsCol: extendsCol,
         implementsCol: implementsCol,
-        // ตรวจสอบว่ามี Missing target ไหม หรือถ้าไม่ได้ ref ใครเลย ก็เป็น Valid/Missing ขึ้นอยู่กับ requirement
-        statusCol: hasMissing ? 'Missing' : (targets.length > 0 ? 'Valid' : 'Missing'),
-        // กำหนด Type ของแต่ละแถวเพื่อใช้เป็น Link สำหรับ Navigate ไปยังหน้า Diagram อื่นๆ
+        statusCol: hasMissing ? 'Missing' : (hasValid ? 'Valid' : 'Missing'),
         type: rowType
       });
     };
@@ -327,15 +330,45 @@ export class Overview implements OnInit, OnChanges {
     const container = document.getElementById('semantic-network');
     if (!container || typeof vis === 'undefined' || this.ontologyGraph.length === 0) return;
 
+    if (this.network) {
+      this.network.destroy();
+      this.network = null;
+    }
+
+    // ตรวจสอบพิกัดของโหนดที่เคยบันทึกไว้ใน localStorage
+    let savedPositions: { [nodeId: string]: { x: number; y: number } } | null = null;
+    const storageKey = `ontology_graph_positions_${this.projectId}`;
+    const savedStr = localStorage.getItem(storageKey);
+    if (savedStr) {
+      try {
+        savedPositions = JSON.parse(savedStr);
+      } catch (e) {
+        console.error('Failed to parse saved graph positions', e);
+      }
+    }
+    this.hasSavedPositions = !!(savedPositions && Object.keys(savedPositions).length > 0);
+
+    const getPos = (id: string, defaultX: number, defaultY: number) => {
+      if (savedPositions && savedPositions[id]) {
+        return { x: savedPositions[id].x, y: savedPositions[id].y };
+      }
+      return { x: defaultX, y: defaultY };
+    };
+
+    const posMaster = getPos('MASTER_ONTOLOGY', 0, 0);
+    const posUC = getPos('GROUP_UC', 285, -210);
+    const posCL = getPos('GROUP_CL', -285, -210);
+    const posAC = getPos('GROUP_AC', 0, 340);
+
     const nodes: any[] = [
       // โหนดหลัก "Ontology" ที่เป็นศูนย์กลางของทุก Diagram (ตรึงไว้ที่จุดกึ่งกลาง + mass สูงเพื่อผลักไม่ให้โหนดอื่นลอยมาทับ)
-      { id: 'MASTER_ONTOLOGY', label: 'Ontology', color: '#ff7f50', shape: 'circle', font: { size: 24, bold: true, color: '#ffffff' }, title: 'Ontology Root', x: 0, y: 0, fixed: true, mass: 6 },
+      { id: 'MASTER_ONTOLOGY', label: 'Ontology', color: '#ff7f50', shape: 'circle', font: { size: 24, bold: true, color: '#ffffff' }, title: 'Ontology Root', x: posMaster.x, y: posMaster.y, fixed: true, mass: 6 },
       // กลุ่ม Use Case อยู่ขวาบน (ลดระยะลง 25%)
-      { id: 'GROUP_UC', label: 'UC\nDiagram', color: '#7BE141', shape: 'circle', font: { size: 16, bold: true }, title: 'Use Case Diagram (Group)', x: 285, y: -210, fixed: true, mass: 3 },
+      { id: 'GROUP_UC', label: 'UC\nDiagram', color: '#7BE141', shape: 'circle', font: { size: 16, bold: true }, title: 'Use Case Diagram (Group)', x: posUC.x, y: posUC.y, fixed: true, mass: 3 },
       // กลุ่ม Class อยู่ซ้ายบน (ลดระยะลง 25%)
-      { id: 'GROUP_CL', label: 'CL\nDiagram', color: '#97C2FC', shape: 'circle', font: { size: 16, bold: true }, title: 'Class Diagram (Group)', x: -285, y: -210, fixed: true, mass: 3 },
+      { id: 'GROUP_CL', label: 'CL\nDiagram', color: '#97C2FC', shape: 'circle', font: { size: 16, bold: true }, title: 'Class Diagram (Group)', x: posCL.x, y: posCL.y, fixed: true, mass: 3 },
       // กลุ่ม Activity Diagram อยู่ด้านล่าง (ลดระยะลง 25%)
-      { id: 'GROUP_AC', label: 'AC\nDiagram', color: '#FFC107', shape: 'circle', font: { size: 16, bold: true }, title: 'Activity Diagram (Group)', x: 0, y: 340, fixed: true, mass: 3 }
+      { id: 'GROUP_AC', label: 'AC\nDiagram', color: '#FFC107', shape: 'circle', font: { size: 16, bold: true }, title: 'Activity Diagram (Group)', x: posAC.x, y: posAC.y, fixed: true, mass: 3 }
     ];
     const edges: any[] = [
       // เชื่อมโยงแต่ละ Diagram เข้ากับโหนดศูนย์กลาง MASTER_ONTOLOGY (ลดความยาวเส้นลง 25% เหลือ 340)
@@ -376,14 +409,14 @@ export class Overview implements OnInit, OnChanges {
         
         const shortId = node['@id'].split(':').pop();
         const labelName = node['rdfs:label'] || '';
-        
         const typeName = node['@type'].split(':').pop();
+        const nodePos = getPos(node['@id'], initX, initY);
 
         nodes.push({
           id: node['@id'],
           label: shortId,
-          x: initX,
-          y: initY,
+          x: nodePos.x,
+          y: nodePos.y,
           color: color,
           shape: shape,
           title: `ID: ${shortId}\nName: ${labelName || '-'}\nType: ${typeName}`,
@@ -444,6 +477,7 @@ export class Overview implements OnInit, OnChanges {
           });
         }
         
+
         // Connect to its group node
         edges.push({
           id: `isA-${node['@id']}`,
@@ -459,7 +493,7 @@ export class Overview implements OnInit, OnChanges {
     });
 
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
-    const options = {
+    const options: any = {
       // ล็อค randomSeed ให้ค่าคงที่ เพื่อให้ทุกครั้งที่เปิดมากราฟจะอยู่ที่เดิม ไม่สลับซ้ายขวาไปมา
       layout: { randomSeed: 1337 },
       nodes: {
@@ -467,19 +501,6 @@ export class Overview implements OnInit, OnChanges {
           node: true,
           label: false // ไม่เปลี่ยนตัวอักษรเป็นตัวหนาเมื่อ hover หรือคลิกโหนด
         }
-      },
-      physics: {
-        solver: 'barnesHut',
-        barnesHut: {
-          gravitationalConstant: -3000,
-          centralGravity: 0.01,
-          springLength: 90,
-          springConstant: 0.05,
-          nodeDistance: 120,
-          avoidOverlap: 1
-        },
-        // สั่งให้คำนวณ Physics ในฉากหลังให้เสร็จสมบูรณ์ก่อนที่จะเรนเดอร์กราฟออกมา เพื่อให้กราฟนิ่งตั้งแต่เริ่มต้น
-        stabilization: { enabled: true, iterations: 250 }
       },
       edges: {
         smooth: false,
@@ -494,14 +515,54 @@ export class Overview implements OnInit, OnChanges {
       }
     };
 
+    if (this.hasSavedPositions) {
+      // เมื่อมีตำแหน่งที่บันทึกไว้ ให้ปิด physics ทันที เพื่อให้โหนดคงอยู่ที่พิกัดเดิมเป๊ะๆ โดยไม่ถูกแรง Physics ขยับ
+      options.physics = { enabled: false };
+    } else {
+      options.physics = {
+        solver: 'barnesHut',
+        barnesHut: {
+          gravitationalConstant: -3000,
+          centralGravity: 0.01,
+          springLength: 90,
+          springConstant: 0.05,
+          nodeDistance: 120,
+          avoidOverlap: 1
+        },
+        // สั่งให้คำนวณ Physics ในฉากหลังให้เสร็จสมบูรณ์ก่อนที่จะเรนเดอร์กราฟออกมา เพื่อให้กราฟนิ่งตั้งแต่เริ่มต้น
+        stabilization: { enabled: true, iterations: 250 }
+      };
+    }
+
     this.network = new vis.Network(container, data, options);
 
-    // ปิด Physics ทันทีหลังจากคำนวณตำแหน่งเริ่มต้นเสร็จ เพื่อไม่ให้มีแรงดึงดูดหรือสปริงเด้งเวลาลากขยับโหนด
-    this.network.once('stabilizationIterationsDone', () => {
-      this.network.setOptions({ physics: { enabled: false } });
-    });
-    this.network.once('stabilized', () => {
-      this.network.setOptions({ physics: { enabled: false } });
+    if (!this.hasSavedPositions) {
+      // ปิด Physics ทันทีหลังจากคำนวณตำแหน่งเริ่มต้นเสร็จ เพื่อไม่ให้มีแรงดึงดูดหรือสปริงเด้งเวลาลากขยับโหนด
+      this.network.once('stabilizationIterationsDone', () => {
+        this.network.setOptions({ physics: { enabled: false } });
+      });
+      this.network.once('stabilized', () => {
+        this.network.setOptions({ physics: { enabled: false } });
+      });
+    }
+
+    // บันทึกตำแหน่งของโหนดเมื่อผู้ใช้ลากย้ายตำแหน่งเสร็จ
+    this.network.on('dragEnd', (params: any) => {
+      if (params && params.nodes && params.nodes.length > 0) {
+        const currentPositions = this.network.getPositions();
+        if (currentPositions && this.projectId) {
+          const sanitizedPositions: { [key: string]: { x: number; y: number } } = {};
+          for (const key of Object.keys(currentPositions)) {
+            sanitizedPositions[key] = {
+              x: Math.round(currentPositions[key].x),
+              y: Math.round(currentPositions[key].y)
+            };
+          }
+          localStorage.setItem(`ontology_graph_positions_${this.projectId}`, JSON.stringify(sanitizedPositions));
+          this.hasSavedPositions = true;
+          this.cdr.detectChanges();
+        }
+      }
     });
 
     // ---- Click handler: Node หรือ Edge ----
@@ -558,10 +619,10 @@ export class Overview implements OnInit, OnChanges {
 
         const relLabel = edgeData.relLabel || 'connected';
         const colorMap: any = {
-          references: '#1E293B',
-          extends:    '#7B2FBE',
-          implements: '#0891B2',
-          isA:        '#888888'
+          references:     '#1E293B',
+          extends:        '#7B2FBE',
+          implements:     '#0891B2',
+          isA:            '#888888'
         };
 
         this.selectedEdgeInfo = {
@@ -598,6 +659,23 @@ export class Overview implements OnInit, OnChanges {
         easingFunction: 'easeInOutQuad'
       }
     });
+  }
+
+  resetNodePositions(): void {
+    if (!this.projectId) return;
+    if (confirm('คุณต้องการรีเซ็ตตำแหน่งโหนดทั้งหมดของกราฟกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
+      localStorage.removeItem(`ontology_graph_positions_${this.projectId}`);
+      this.hasSavedPositions = false;
+      this.initVisGraph();
+      this.cdr.detectChanges();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.network) {
+      this.network.destroy();
+      this.network = null;
+    }
   }
 
   goToSection(section: string): void {

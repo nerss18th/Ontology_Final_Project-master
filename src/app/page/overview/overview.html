@@ -132,14 +132,23 @@
         <div class="card-body p-0 position-relative">
           <div id="semantic-network" style="width: 100%; height: 450px; background-color: #f8f9fa;"></div>
 
-          <!-- Reset Focus to Ontology Button (มุมขวาบน) -->
-          <button type="button"
-            class="btn btn-sm btn-light bg-white border shadow-sm position-absolute top-0 end-0 m-3 d-flex align-items-center gap-1 px-3 py-1 text-secondary fw-semibold"
-            style="z-index: 5; border-radius: 8px; backdrop-filter: blur(4px); transition: all 0.2s ease;"
-            (click)="resetOntologyPosition()" title="Reset position to Ontology Node">
-            <span class="material-symbols-outlined" style="font-size: 18px; color: #ff7f50;">center_focus_strong</span>
-            <span>Reset Position</span>
-          </button>
+          <!-- Graph Control Buttons (มุมขวาบน) -->
+          <div class="position-absolute top-0 end-0 m-3 d-flex gap-2" style="z-index: 5;">
+            <button *ngIf="hasSavedPositions" type="button"
+              class="btn btn-sm btn-light bg-white border shadow-sm d-flex align-items-center gap-1 px-3 py-1 text-secondary fw-semibold"
+              style="border-radius: 8px; backdrop-filter: blur(4px); transition: all 0.2s ease;"
+              (click)="resetNodePositions()" title="รีเซ็ตตำแหน่งโหนดทั้งหมดของกราฟกลับเป็นค่าเริ่มต้น">
+              <span class="material-symbols-outlined" style="font-size: 18px; color: #dc3545;">restart_alt</span>
+              <span>Reset Layout</span>
+            </button>
+            <button type="button"
+              class="btn btn-sm btn-light bg-white border shadow-sm d-flex align-items-center gap-1 px-3 py-1 text-secondary fw-semibold"
+              style="border-radius: 8px; backdrop-filter: blur(4px); transition: all 0.2s ease;"
+              (click)="resetOntologyPosition()" title="เลื่อนมุมมองกล้องไปยังจุดศูนย์กลาง (Ontology Node)">
+              <span class="material-symbols-outlined" style="font-size: 18px; color: #ff7f50;">center_focus_strong</span>
+              <span>Reset Position</span>
+            </button>
+          </div>
 
           <!-- Edge Info Panel (แสดงเมื่อคลิ๊กเส้น) — มุมล่างซ้าย -->
           <div *ngIf="selectedEdgeInfo"
@@ -305,11 +314,11 @@
               <table class="table table-hover mb-0 align-middle ref-table">
                 <thead class="table-primary small border-bottom thead-class">
                   <tr>
-                    <th style="width: 28%" class="ps-3">Class ID</th>
-                    <th style="width: 24%">Reference To (Use Case)</th>
-                    <th style="width: 24%">Extends</th>
-                    <th>Implements</th>
-                    <th style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">Status</th>
+                    <th style="width: 25%" class="ps-3">Class ID</th>
+                    <th style="width: 27%">Reference To (Use Case)</th>
+                    <th style="width: 18%">Extends</th>
+                    <th style="width: 18%">Implements</th>
+                    <th style="width: 120px; min-width: 120px;" class="text-center pe-3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -324,7 +333,7 @@
                     <td [innerHTML]="row.refToCol"></td>
                     <td [innerHTML]="row.extendsCol"></td>
                     <td [innerHTML]="row.implementsCol"></td>
-                    <td style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">
+                    <td style="width: 120px; min-width: 120px;" class="text-center pe-3">
                       <span class="badge" [ngClass]="{
                               'text-bg-success': row.statusCol === 'Valid', 
                               'text-bg-danger': row.statusCol === 'Missing'
@@ -356,8 +365,8 @@
               <table class="table table-hover mb-0 align-middle ref-table">
                 <thead class="table-warning small border-bottom thead-activity">
                   <tr>
-                    <th style="width: 40%" class="ps-3">Activity ID</th>
-                    <th>Reference To (Use Case)</th>
+                    <th style="width: 38%" class="ps-3">Activity ID</th>
+                    <th style="width: 38%">Reference To (Use Case)</th>
                     <th style="width: 130px; min-width: 130px; max-width: 130px;" class="text-center pe-3">Status</th>
                   </tr>
                 </thead>

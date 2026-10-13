@@ -58,6 +58,7 @@ export interface ActivityDiagramItem {
   activityName: string;
   useCaseRef: string;
   useCaseRefArray?: string[];
+  classRef?: string;
   preliminaryActivityId: string;
   description: string;
   imagePath: string | null;
@@ -96,7 +97,7 @@ export class ActivityDiagram implements OnInit, OnChanges {
   public isViewModalOpen = false;
   public isEditMode = false;
 
-  public useCaseOptions: string[] = ['UC-01 (Manage Users)', 'UC-02 (Manage Projects)', 'UC-03 (View Diagram)'];
+  public useCaseOptions: string[] = [];
   public isSaving = false;
   public saveMessage = '';
 
@@ -145,6 +146,7 @@ export class ActivityDiagram implements OnInit, OnChanges {
       activityName: '',
       useCaseRef: '',
       useCaseRefArray: [],
+      classRef: '',
       preliminaryActivityId: '',
       description: '',
       imagePath: null,
@@ -188,6 +190,7 @@ export class ActivityDiagram implements OnInit, OnChanges {
     });
   }
 
+
   loadActivityDiagrams(): void {
     this.backendApi.getActivityDiagrams(this.projectId, this.token).subscribe({
       next: (res) => {
@@ -225,7 +228,7 @@ export class ActivityDiagram implements OnInit, OnChanges {
     this.isEditMode = true;
     this.selectedDiagramForEdit = JSON.parse(JSON.stringify(item));
     if (this.selectedDiagramForEdit) {
-      // แยกข้อความที่มีจุลภาคคั่น (เช่น "UC-01, UC-02") ให้เป็น Array ของ String เพื่่อแสดงผลบน `<select multiple>`
+      // แยกข้อความที่มีจุลภาคคั่น (เช่น "UC-01, UC-02") ให้เป็น Array ของ String เพื่อแสดงผลบน checkbox list
       this.selectedDiagramForEdit.useCaseRefArray = this.selectedDiagramForEdit.useCaseRef ? this.selectedDiagramForEdit.useCaseRef.split(',').map((r: string) => r.trim()).filter((r: string) => r !== '') : [];
     }
     this.isAddModalOpen = true;
@@ -243,6 +246,7 @@ export class ActivityDiagram implements OnInit, OnChanges {
       this.selectedDiagramForEdit.useCaseRefArray = this.selectedDiagramForEdit.useCaseRefArray.filter(r => r !== uc);
     }
   }
+
 
   closeAddModal(): void {
     this.isAddModalOpen = false;
@@ -442,12 +446,13 @@ export class ActivityDiagram implements OnInit, OnChanges {
       return;
     }
 
-    // นำ Array ที่ได้จากการเลือกผ่าน `<select multiple>` มารวมกลับเป็น String ขั้นด้วยจุลภาค
+    // นำ Array ที่ได้จากการเลือก useCaseRefArray มารวมกลับเป็น String คั่นด้วยจุลภาค
     if (this.selectedDiagramForEdit.useCaseRefArray && this.selectedDiagramForEdit.useCaseRefArray.length > 0) {
       this.selectedDiagramForEdit.useCaseRef = this.selectedDiagramForEdit.useCaseRefArray.join(', ');
     } else {
       this.selectedDiagramForEdit.useCaseRef = '';
     }
+    this.selectedDiagramForEdit.classRef = '';
 
     const payload = this.selectedDiagramForEdit;
     this.isSaving = true;
