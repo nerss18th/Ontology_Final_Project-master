@@ -287,33 +287,83 @@
               <div class="row g-4">
                 <!-- การ์ดโปรเจกต์ -->
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3 position-relative" *ngFor="let proj of projects">
-                  <button class="btn btn-light position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center p-1 delete-project-btn"
+                  <button *ngIf="proj.isOwner || (currentUser$ | async)?.role === 'admin'" class="btn btn-light position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center p-1 delete-project-btn"
                     style="z-index: 10; width: 32px; height: 32px; right: 24px; top: 16px; opacity: 0.9;"
                     (click)="openDeleteConfirmModal(proj.id, $event)" title="Delete Project">
                     <span class="material-symbols-outlined text-danger" style="font-size: 18px;">delete</span>
                   </button>
                   <a *ngIf="proj.link; else unlinkedCard"
-                    class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100 text-decoration-none"
+                    class="project-card d-flex flex-column bg-white rounded-4 p-2 shadow-sm h-100 text-decoration-none"
                     [routerLink]="proj.link"
                     [attr.aria-label]="'Open ' + proj.name + ' details'">
                     <div
-                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center">
+                      class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center position-relative mb-2">
                       <span class="material-symbols-outlined display-5 text-primary text-opacity-50">folder_zip</span>
+                      <!-- สถานะของผู้ใช้ในโปรเจกต์ (Owner / Editor) -->
+                      <div class="position-absolute" style="top: 10px; left: 10px; z-index: 2;">
+                        <span class="badge rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-sm"
+                          [ngClass]="proj.isOwner ? 'bg-primary text-white' : 'bg-success text-white'"
+                          style="font-size: 11px; font-weight: 600;">
+                          <span class="material-symbols-outlined" style="font-size: 13px;">{{ proj.isOwner ? 'shield_person' : 'edit_note' }}</span>
+                          {{ proj.isOwner ? 'Owner' : (proj.role || 'Editor') }}
+                        </span>
+                      </div>
                     </div>
-                    <div class="px-2 pb-2 mt-1">
-                      <h6 class="fw-bold text-dark m-0 project-title">{{ proj.name }}</h6>
-                      <small class="text-secondary">{{ proj.detail }}</small>
+                    <div class="px-2 pb-2 d-flex flex-column flex-grow-1 justify-content-between">
+                      <div>
+                        <!-- ชื่อโปรเจกต์ -->
+                        <h6 class="fw-bold text-dark mb-1 project-title text-truncate" [title]="proj.name">
+                          {{ proj.name }}
+                        </h6>
+
+                        <!-- ชื่อของ Owner -->
+                        <div class="d-flex align-items-center gap-1 text-secondary mb-2" style="font-size: 12px;">
+                          <span class="material-symbols-outlined text-primary text-opacity-75" style="font-size: 15px;">person</span>
+                          <span>Owner: <span class="fw-semibold text-dark">{{ proj.owner_name || 'Unknown' }}</span></span>
+                        </div>
+
+                        <!-- Description -->
+                        <p class="text-secondary small mb-0 project-description" style="font-size: 12px; line-height: 1.45;" [title]="proj.detail">
+                          {{ proj.detail ? proj.detail : 'ไม่มีคำอธิบายโปรเจกต์' }}
+                        </p>
+                      </div>
+
+                      <div class="pt-2 mt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 11px;">
+                        <span class="d-inline-flex align-items-center gap-1">
+                          <span class="material-symbols-outlined" style="font-size: 13px;">visibility</span>
+                          เปิดดูโปรเจกต์
+                        </span>
+                        <span class="material-symbols-outlined text-primary fs-6 card-arrow">arrow_forward</span>
+                      </div>
                     </div>
                   </a>
                   <ng-template #unlinkedCard>
-                    <div class="project-card d-flex flex-column gap-2 bg-white rounded-4 p-2 shadow-sm h-100">
+                    <div class="project-card d-flex flex-column bg-white rounded-4 p-2 shadow-sm h-100">
                       <div
-                        class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center">
+                        class="ratio ratio-16x9 rounded-3 overflow-hidden bg-primary-soft d-flex align-items-center justify-content-center position-relative mb-2">
                         <span class="material-symbols-outlined display-5 text-primary text-opacity-50">folder_zip</span>
+                        <div class="position-absolute" style="top: 10px; left: 10px; z-index: 2;">
+                          <span class="badge rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-sm"
+                            [ngClass]="proj.isOwner ? 'bg-primary text-white' : 'bg-success text-white'"
+                            style="font-size: 11px; font-weight: 600;">
+                            <span class="material-symbols-outlined" style="font-size: 13px;">{{ proj.isOwner ? 'shield_person' : 'edit_note' }}</span>
+                            {{ proj.isOwner ? 'Owner' : (proj.role || 'Editor') }}
+                          </span>
+                        </div>
                       </div>
-                      <div class="px-2 pb-2 mt-1">
-                        <h6 class="fw-bold text-dark m-0 project-title">{{ proj.name }}</h6>
-                        <small class="text-secondary">{{ proj.detail }}</small>
+                      <div class="px-2 pb-2 d-flex flex-column flex-grow-1 justify-content-between">
+                        <div>
+                          <h6 class="fw-bold text-dark mb-1 project-title text-truncate" [title]="proj.name">
+                            {{ proj.name }}
+                          </h6>
+                          <div class="d-flex align-items-center gap-1 text-secondary mb-2" style="font-size: 12px;">
+                            <span class="material-symbols-outlined text-primary text-opacity-75" style="font-size: 15px;">person</span>
+                            <span>Owner: <span class="fw-semibold text-dark">{{ proj.owner_name || 'Unknown' }}</span></span>
+                          </div>
+                          <p class="text-secondary small mb-0 project-description" style="font-size: 12px; line-height: 1.45;" [title]="proj.detail">
+                            {{ proj.detail ? proj.detail : 'ไม่มีคำอธิบายโปรเจกต์' }}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </ng-template>
@@ -322,8 +372,8 @@
                 <!-- ช่องเพิ่มโปรเจกต์ใหม่ -->
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                   <div
-                    class="dashed-card d-flex flex-column align-items-center justify-content-center rounded-4 h-100 p-3 ratio ratio-16x9 m-0"
-                    style="height: auto; cursor: pointer;" (click)="openAddProjectModal()">
+                    class="dashed-card d-flex flex-column align-items-center justify-content-center rounded-4 h-100 p-4 m-0"
+                    style="min-height: 240px; cursor: pointer;" (click)="openAddProjectModal()">
                     <div class="d-flex flex-column align-items-center justify-content-center gap-2 add-content">
                       <span class="material-symbols-outlined display-6 text-secondary">add_circle</span>
                       <span class="fw-semibold text-secondary text-sm">New Project</span>
