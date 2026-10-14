@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, ViewChild, ElementRef, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { BackendApiService } from '../../services/backend-api.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -15,7 +15,7 @@ export interface UseCase {
 @Component({
   selector: 'app-use-case-diagram',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './use-case-diagram.html',
   styleUrl: './use-case-diagram.css',
 })
